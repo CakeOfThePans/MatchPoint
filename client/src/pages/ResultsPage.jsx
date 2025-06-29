@@ -82,7 +82,7 @@ export const ResultsPage = () => {
 								</div>
 								<input
 									type="text"
-									className="block w-full pl-10 pr-12 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:border-blue-500"
+									className="block w-full pl-10 pr-12 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:border-green-500"
 									placeholder="Search by player name..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}

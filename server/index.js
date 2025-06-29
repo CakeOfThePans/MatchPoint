@@ -1,11 +1,13 @@
 import 'dotenv/config'
 import express from 'express'
+import cors from 'cors'
 import prisma from './lib/prisma.js'
 import { startCronJobs, stopCronJobs } from './cron/scheduler.js'
 
 const app = express()
 
 // Middleware
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
