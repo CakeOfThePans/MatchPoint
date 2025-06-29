@@ -9,10 +9,16 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Routes
-// TODO: Delete this later
-import testRoutes from './routes/test.js'
-app.use('/test', testRoutes)
+// API Routes
+import leagueRoutes from './routes/leagues.js'
+import matchRoutes from './routes/matches.js'
+import playerRoutes from './routes/players.js'
+import mlResultRoutes from './routes/mlresults.js'
+
+app.use('/api/leagues', leagueRoutes)
+app.use('/api/matches', matchRoutes)
+app.use('/api/players', playerRoutes)
+app.use('/api/mlresults', mlResultRoutes)
 
 // Error handling middleware
 app.use((error, req, res, next) => {

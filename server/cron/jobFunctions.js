@@ -306,7 +306,7 @@ const getBettingOdds = async (matchId) => {
 			(period) => period.period_type === 'Full Time'
 		)
 		let Bet365Odds = fullMatchOdds[0].odds.find(
-			(odds) => odds.bookmaker_name === 'Bet365'
+			(odds) => odds.bookmaker_name === 'bet365' ||odds.bookmaker_name === 'Bet365'
 		)
 
 		// Update the match with the betting odds
@@ -355,10 +355,25 @@ const getDailyBettingOdds = async () => {
 const getPredictions = async (matchId) => {
 	try {
 		// TODO: Implement prediction fetching logic
-		// For now just return 80% chance of home win, 20% chance of away win
+		// For now just do based on the betting odds
+		let match = await prisma.match.findUnique({
+			where: {
+				match_id: matchId,
+			},
+		})
+
+		let homeTeamOdds = match.home_team_odds
+		let awayTeamOdds = match.away_team_odds
+
+		let homeTeamProb = 1 / homeTeamOdds
+		let awayTeamProb = 1 / awayTeamOdds
+
+		let homeTeamPredictionProb = homeTeamProb / (homeTeamProb + awayTeamProb)
+		let awayTeamPredictionProb = awayTeamProb / (homeTeamProb + awayTeamProb)
+
 		return {
-			home_team_prediction_prob: 0.8,
-			away_team_prediction_prob: 0.2,
+			home_team_prediction_prob: homeTeamPredictionProb,
+			away_team_prediction_prob: awayTeamPredictionProb,
 		}
 	} catch (error) {
 		console.error('Error fetching predictions:', error)
@@ -384,8 +399,12 @@ const updatePredictions = async () => {
 		})
 
 		for (let match of matches) {
-			// If the match is finished, we shouldn't update the predictions anymore
-			if (match.status_type === 'finished') {
+			// If the match is finished, we shouldn't update the predictions anymore unless there was no prediction yet
+			if (match.status_type === 'finished' && match.winner_prediction_id) {
+				continue
+			}
+			// If the match is canceled/interrupted/suspended, we shouldn't update the predictions
+			if (match.status_type === 'canceled' || match.status_type === 'interrupted' || match.status_type === 'suspended') {
 				continue
 			}
 
