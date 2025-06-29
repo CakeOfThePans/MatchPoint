@@ -3,21 +3,44 @@ import prisma from '../lib/prisma.js'
 // Get all matches
 const getAllMatches = async (req, res) => {
 	try {
-		const { page = 1, limit = 18, isFinished } = req.query
+		const { page = 1, limit = 20, finishedOnly, search } = req.query
 		const skip = (parseInt(page) - 1) * parseInt(limit)
 
 		const whereClause = {}
 
-		if (isFinished === 'true') {
+		if (finishedOnly === 'true') {
 			whereClause.status_type = 'finished'
 		} else {
-			// Get matches that are not finished AND start_time is after UTC midnight today
+			// Get matches that are finished, upcoming, or live AND start_time is after UTC midnight today
 			whereClause.status_type = {
-				not: 'finished',
+				in: ['finished', 'upcoming', 'live'],
 			}
 			whereClause.start_time = {
 				gt: new Date(new Date().setUTCHours(0, 0, 0, 0)),
 			}
+		}
+
+		// Add search functionality
+		if (search && search.trim()) {
+			const searchTerm = search.trim()
+			whereClause.OR = [
+				{
+					home_team: {
+						team_name: {
+							contains: searchTerm,
+							mode: 'insensitive',
+						},
+					},
+				},
+				{
+					away_team: {
+						team_name: {
+							contains: searchTerm,
+							mode: 'insensitive',
+						},
+					},
+				},
+			]
 		}
 
 		const matches = await prisma.match.findMany({
@@ -29,7 +52,7 @@ const getAllMatches = async (req, res) => {
 				winner: true,
 			},
 			orderBy: {
-				start_time: isFinished === 'true' ? 'desc' : 'asc',
+				start_time: finishedOnly === 'true' ? 'desc' : 'asc',
 			},
 			skip,
 			take: parseInt(limit),
@@ -105,7 +128,7 @@ const getMatchById = async (req, res) => {
 const getMatchesByLeague = async (req, res) => {
 	try {
 		const { leagueId } = req.params
-		const { page = 1, limit = 18, isFinished } = req.query
+		const { page = 1, limit = 20, finishedOnly, search } = req.query
 		const skip = (parseInt(page) - 1) * parseInt(limit)
 
 		const leagueIdInt = parseInt(leagueId)
@@ -120,16 +143,39 @@ const getMatchesByLeague = async (req, res) => {
 			league_id: leagueIdInt,
 		}
 
-		if (isFinished === 'true') {
+		if (finishedOnly === 'true') {
 			whereClause.status_type = 'finished'
 		} else {
-			// Get matches that are not finished AND start_time is after UTC midnight today
+			// Get matches that are finished, upcoming, or live AND start_time is after UTC midnight today
 			whereClause.status_type = {
-				not: 'finished',
+				in: ['finished', 'upcoming', 'live'],
 			}
 			whereClause.start_time = {
 				gt: new Date(new Date().setUTCHours(0, 0, 0, 0)),
 			}
+		}
+
+		// Add search functionality
+		if (search && search.trim()) {
+			const searchTerm = search.trim()
+			whereClause.OR = [
+				{
+					home_team: {
+						team_name: {
+							contains: searchTerm,
+							mode: 'insensitive',
+						},
+					},
+				},
+				{
+					away_team: {
+						team_name: {
+							contains: searchTerm,
+							mode: 'insensitive',
+						},
+					},
+				},
+			]
 		}
 
 		const matches = await prisma.match.findMany({
@@ -141,7 +187,7 @@ const getMatchesByLeague = async (req, res) => {
 				winner: true,
 			},
 			orderBy: {
-				start_time: isFinished === 'true' ? 'desc' : 'asc',
+				start_time: finishedOnly === 'true' ? 'desc' : 'asc',
 			},
 			skip,
 			take: parseInt(limit),
