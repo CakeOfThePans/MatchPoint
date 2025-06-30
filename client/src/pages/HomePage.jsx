@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { BarChart2Icon, HistoryIcon, SwordsIcon, UserIcon } from 'lucide-react'
+import { BarChart2Icon, HistoryIcon, UserIcon } from 'lucide-react'
 
 const HomePage = () => {
 	const scrollToTop = () => {
@@ -50,7 +50,7 @@ const HomePage = () => {
 					Everything you need to understand and predict tennis matches with
 					cutting-edge AI technology
 				</p>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					<Link
 						to="/predictions"
 						className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:bg-gray-50 transition-all duration-200 transform hover:-translate-y-1 group"
@@ -63,7 +63,8 @@ const HomePage = () => {
 							Match Predictions
 						</h3>
 						<p className="text-gray-600">
-							Get predictions for upcoming matches across all major tournaments.
+							Get predictions for upcoming and past matches across all major
+							tournaments.
 						</p>
 					</Link>
 					<Link
@@ -78,23 +79,7 @@ const HomePage = () => {
 							Model Performance
 						</h3>
 						<p className="text-gray-600">
-							Track our prediction accuracy and see historical results with
-							detailed analytics.
-						</p>
-					</Link>
-					<Link
-						to="/head-to-head"
-						className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:bg-gray-50 transition-all duration-200 transform hover:-translate-y-1 group"
-						onClick={scrollToTop}
-					>
-						<div className="bg-green-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors duration-200">
-							<SwordsIcon className="h-6 w-6 text-green-700" />
-						</div>
-						<h3 className="font-semibold text-lg mb-2 text-gray-800">
-							Head-to-Head Analysis
-						</h3>
-						<p className="text-gray-600">
-							Compare any two players with comprehensive statistical breakdowns.
+							Track our prediction performance by tournament and surface.
 						</p>
 					</Link>
 					<Link
@@ -106,18 +91,16 @@ const HomePage = () => {
 							<UserIcon className="h-6 w-6 text-green-700" />
 						</div>
 						<h3 className="font-semibold text-lg mb-2 text-gray-800">
-							Player Profiles
+							Player Rankings
 						</h3>
 						<p className="text-gray-600">
-							Detailed statistics, rankings, and performance metrics for all
-							players.
+							Check out the latest live player rankings in real time.
 						</p>
 					</Link>
 				</div>
 			</div>
 
-			{/* CTA section with full-width background */}
-			<div className="bg-gray-100 w-full py-8 mb-6">
+			<div className="w-full py-8 mb-6">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center">
 						<h2 className="text-2xl font-bold text-gray-800 mb-4">

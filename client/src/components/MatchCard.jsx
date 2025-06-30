@@ -1,7 +1,10 @@
-import React from 'react'
-import { Calendar, Clock } from 'lucide-react'
+import React, { useState } from 'react'
+import { Calendar, Clock, User } from 'lucide-react'
 
-export const MatchCard = ({ match }) => {
+export const MatchCard = ({ match, isPast = false }) => {
+	const [homeImageError, setHomeImageError] = useState(false)
+	const [awayImageError, setAwayImageError] = useState(false)
+
 	// Extract data from backend structure
 	const homeTeam = match.home_team
 	const awayTeam = match.away_team
@@ -32,6 +35,23 @@ export const MatchCard = ({ match }) => {
 		return `${(prob * 100).toFixed(1)}%`
 	}
 
+	// Get probability color based on percentage
+	const getProbabilityColor = (prob) => {
+		if (prob === null || prob === undefined) {
+			return 'bg-gray-100 text-gray-700'
+		}
+		const percentage = prob * 100
+		if (percentage >= 70) {
+			return 'bg-green-100 text-green-800'
+		} else if (percentage >= 50) {
+			return 'bg-yellow-100 text-yellow-800'
+		} else if (percentage >= 30) {
+			return 'bg-orange-100 text-orange-800'
+		} else {
+			return 'bg-red-100 text-red-800'
+		}
+	}
+
 	return (
 		<div className="bg-white rounded-lg shadow-md overflow-hidden">
 			<div className="bg-green-50 px-4 py-2 border-b border-gray-200">
@@ -53,37 +73,59 @@ export const MatchCard = ({ match }) => {
 			<div className="p-4">
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex items-center">
-						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-							<img
-								src={`https://images.sportdevs.com/${homeTeam.team_hash_image}.png`}
-								alt={homeTeam.team_name}
-								className="w-full h-full object-cover"
-							/>
+						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
+							{!homeImageError ? (
+								<img
+									src={`https://images.sportdevs.com/${homeTeam.team_hash_image}.png`}
+									alt={homeTeam.team_name}
+									className="w-full h-full object-cover"
+									onError={() => setHomeImageError(true)}
+								/>
+							) : (
+								<User className="h-6 w-6 text-gray-400" />
+							)}
 						</div>
 						<div className="ml-3">
 							<p className="font-medium">{homeTeam.team_name}</p>
-							<p className="text-sm text-gray-600">Rank {homeTeam.rank}</p>
+							{!isPast && (
+								<p className="text-sm text-gray-600">Rank {homeTeam.rank}</p>
+							)}
 						</div>
 					</div>
-					<div className="text-center px-3 py-1 bg-green-100 rounded-full text-sm font-medium text-green-800">
+					<div
+						className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
+							homeTeamProb
+						)}`}
+					>
 						{formatProbability(homeTeamProb)}
 					</div>
 				</div>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
-						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-							<img
-								src={`https://images.sportdevs.com/${awayTeam.team_hash_image}.png`}
-								alt={awayTeam.team_name}
-								className="w-full h-full object-cover"
-							/>
+						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
+							{!awayImageError ? (
+								<img
+									src={`https://images.sportdevs.com/${awayTeam.team_hash_image}.png`}
+									alt={awayTeam.team_name}
+									className="w-full h-full object-cover"
+									onError={() => setAwayImageError(true)}
+								/>
+							) : (
+								<User className="h-6 w-6 text-gray-400" />
+							)}
 						</div>
 						<div className="ml-3">
 							<p className="font-medium">{awayTeam.team_name}</p>
-							<p className="text-sm text-gray-600">Rank {awayTeam.rank}</p>
+							{!isPast && (
+								<p className="text-sm text-gray-600">Rank {awayTeam.rank}</p>
+							)}
 						</div>
 					</div>
-					<div className="text-center px-3 py-1 bg-green-100 rounded-full text-sm font-medium text-green-800">
+					<div
+						className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
+							awayTeamProb
+						)}`}
+					>
 						{formatProbability(awayTeamProb)}
 					</div>
 				</div>

@@ -4,7 +4,6 @@ import {
 	BarChart2Icon,
 	HistoryIcon,
 	HomeIcon,
-	SwordsIcon,
 	Trophy,
 	UserIcon,
 	Menu,
@@ -85,18 +84,6 @@ const Navbar = () => {
 								</li>
 								<li>
 									<Link
-										to="/head-to-head"
-										className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${isActive(
-											'/head-to-head'
-										)}`}
-										onClick={scrollToTop}
-									>
-										<SwordsIcon className="h-4 w-4 mr-2" />
-										Head to Head
-									</Link>
-								</li>
-								<li>
-									<Link
 										to="/players"
 										className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${isActive(
 											'/players'
@@ -104,7 +91,7 @@ const Navbar = () => {
 										onClick={scrollToTop}
 									>
 										<UserIcon className="h-4 w-4 mr-2" />
-										Players
+										Rankings
 									</Link>
 								</li>
 							</ul>
@@ -164,18 +151,6 @@ const Navbar = () => {
 								Results
 							</Link>
 							<Link
-								to="/head-to-head"
-								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
-									location.pathname === '/head-to-head'
-										? 'bg-green-100 text-green-800'
-										: 'text-gray-700 hover:bg-gray-100'
-								}`}
-								onClick={scrollToTop}
-							>
-								<SwordsIcon className="h-5 w-5 mr-3" />
-								Head to Head
-							</Link>
-							<Link
 								to="/players"
 								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
 									location.pathname === '/players'
@@ -185,7 +160,7 @@ const Navbar = () => {
 								onClick={scrollToTop}
 							>
 								<UserIcon className="h-5 w-5 mr-3" />
-								Players
+								Rankings
 							</Link>
 						</div>
 					</div>

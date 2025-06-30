@@ -12,6 +12,7 @@ export const PredictionsPage = () => {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
 	const [currentPage, setCurrentPage] = useState(1)
+	const [predictionType, setPredictionType] = useState('upcoming') // 'upcoming' or 'past'
 	const [pagination, setPagination] = useState({
 		page: 1,
 		limit: 12,
@@ -26,19 +27,26 @@ export const PredictionsPage = () => {
 				setLoading(true)
 				setError(null)
 
+				const finishedOnly = predictionType === 'past'
+
 				let response
 				if (selectedTournament) {
 					// Get matches for specific tournament
 					response = await getMatchesByLeague(
 						selectedTournament,
-						false,
+						finishedOnly,
 						currentPage,
 						12,
 						searchQuery
 					)
 				} else {
 					// Get all matches
-					response = await getMatches(false, currentPage, 12, searchQuery)
+					response = await getMatches(
+						finishedOnly,
+						currentPage,
+						12,
+						searchQuery
+					)
 				}
 
 				setMatches(response.data || [])
@@ -59,12 +67,12 @@ export const PredictionsPage = () => {
 		}
 
 		fetchMatches()
-	}, [selectedTournament, currentPage, searchQuery]) // Re-fetch when tournament, page, or search changes
+	}, [selectedTournament, currentPage, searchQuery, predictionType]) // Re-fetch when tournament, page, search, or prediction type changes
 
-	// Reset to page 1 when tournament changes
+	// Reset to page 1 when tournament or prediction type changes
 	useEffect(() => {
 		setCurrentPage(1)
-	}, [selectedTournament])
+	}, [selectedTournament, predictionType])
 
 	// Handle search button click
 	const handleSearch = () => {
@@ -170,17 +178,6 @@ export const PredictionsPage = () => {
 		return pages
 	}
 
-	if (loading) {
-		return (
-			<div className="bg-gray-50 min-h-screen w-full flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-					<p className="mt-4 text-gray-600">Loading matches...</p>
-				</div>
-			</div>
-		)
-	}
-
 	if (error) {
 		return (
 			<div className="bg-gray-50 min-h-screen w-full flex items-center justify-center">
@@ -203,13 +200,38 @@ export const PredictionsPage = () => {
 				<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
 					<div>
 						<h1 className="text-3xl font-bold text-gray-900">
-							Upcoming Match Predictions
+							Match Predictions
 						</h1>
 						<p className="mt-1 text-gray-500">
-							View predictions for upcoming tennis matches
+							View predictions for{' '}
+							{predictionType === 'upcoming' ? 'upcoming' : 'past'} tennis
+							matches
 						</p>
 					</div>
-					<div className="mt-4 md:mt-0">
+					<div className="mt-4 md:mt-0 flex items-center gap-3">
+						{/* Prediction Type Toggle */}
+						<div className="inline-flex bg-gray-100 rounded-md p-1 shadow-sm">
+							<button
+								onClick={() => setPredictionType('upcoming')}
+								className={`px-4 py-2 rounded text-sm font-medium transition-all ${
+									predictionType === 'upcoming'
+										? 'bg-white text-green-700 shadow-sm'
+										: 'text-gray-500 hover:text-gray-700'
+								}`}
+							>
+								Upcoming
+							</button>
+							<button
+								onClick={() => setPredictionType('past')}
+								className={`px-4 py-2 rounded text-sm font-medium transition-all ${
+									predictionType === 'past'
+										? 'bg-white text-green-700 shadow-sm'
+										: 'text-gray-500 hover:text-gray-700'
+								}`}
+							>
+								Past
+							</button>
+						</div>
 						<TournamentSelect
 							onSelect={setSelectedTournament}
 							selectedId={selectedTournament}
@@ -248,85 +270,104 @@ export const PredictionsPage = () => {
 						</button>
 					</div>
 				</div>
-				{/* Group matches by date */}
-				<div className="space-y-8">
-					{matches.length > 0 ? (
-						groupMatchesByDate(matches).map((group) => (
-							<div key={group.date}>
-								<div className="flex items-center mb-4">
-									<Calendar className="h-5 w-5 text-green-600 mr-2" />
-									<h2 className="text-xl font-semibold text-gray-900">
-										{group.date}
-									</h2>
+
+				{/* Loading state for matches area */}
+				{loading ? (
+					<div className="flex items-center justify-center py-16">
+						<div className="text-center">
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+							<p className="mt-3 text-gray-600">Loading matches...</p>
+						</div>
+					</div>
+				) : (
+					<>
+						{/* Group matches by date */}
+						<div className="space-y-8">
+							{matches.length > 0 ? (
+								groupMatchesByDate(matches).map((group) => (
+									<div key={group.date}>
+										<div className="flex items-center mb-4">
+											<Calendar className="h-5 w-5 text-green-600 mr-2" />
+											<h2 className="text-xl font-semibold text-gray-900">
+												{group.date}
+											</h2>
+										</div>
+										<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+											{group.matches.map((match) => (
+												<MatchCard
+													key={match.match_id}
+													match={match}
+													isPast={predictionType === 'past'}
+												/>
+											))}
+										</div>
+									</div>
+								))
+							) : (
+								<div className="text-center py-12">
+									<p className="text-gray-500">
+										{searchQuery
+											? 'No matches found for your search criteria.'
+											: `No ${
+													predictionType === 'upcoming' ? 'upcoming' : 'past'
+											  } matches available.`}
+									</p>
 								</div>
-								<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-									{group.matches.map((match) => (
-										<MatchCard key={match.match_id} match={match} />
+							)}
+						</div>
+						{/* Pagination controls */}
+						{pagination.pages > 1 && (
+							<div className="mt-8 flex justify-center items-center space-x-2">
+								<button
+									onClick={handlePreviousPage}
+									disabled={currentPage === 1}
+									className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+								>
+									<ChevronLeft className="h-4 w-4 mr-1" />
+									Previous
+								</button>
+
+								<div className="flex items-center space-x-1">
+									{getPageNumbers().map((page, index) => (
+										<button
+											key={index}
+											onClick={() =>
+												typeof page === 'number' ? handlePageChange(page) : null
+											}
+											disabled={page === '...'}
+											className={`px-3 py-2 rounded-md text-sm font-medium ${
+												page === '...'
+													? 'text-gray-400 cursor-default'
+													: currentPage === page
+													? 'bg-green-600 text-white'
+													: 'text-gray-700 hover:bg-gray-200'
+											}`}
+										>
+											{page}
+										</button>
 									))}
 								</div>
-							</div>
-						))
-					) : (
-						<div className="text-center py-12">
-							<p className="text-gray-500">
-								{searchQuery
-									? 'No matches found for your search criteria.'
-									: 'No upcoming matches available.'}
-							</p>
-						</div>
-					)}
-				</div>
-				{/* Pagination controls */}
-				{pagination.pages > 1 && (
-					<div className="mt-8 flex justify-center items-center space-x-2">
-						<button
-							onClick={handlePreviousPage}
-							disabled={currentPage === 1}
-							className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-						>
-							<ChevronLeft className="h-4 w-4 mr-1" />
-							Previous
-						</button>
 
-						<div className="flex items-center space-x-1">
-							{getPageNumbers().map((page, index) => (
 								<button
-									key={index}
-									onClick={() =>
-										typeof page === 'number' ? handlePageChange(page) : null
-									}
-									disabled={page === '...'}
-									className={`px-3 py-2 rounded-md text-sm font-medium ${
-										page === '...'
-											? 'text-gray-400 cursor-default'
-											: currentPage === page
-											? 'bg-green-600 text-white'
-											: 'text-gray-700 hover:bg-gray-200'
-									}`}
+									onClick={handleNextPage}
+									disabled={currentPage === pagination.pages}
+									className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
 								>
-									{page}
+									Next
+									<ChevronRight className="h-4 w-4 ml-1" />
 								</button>
-							))}
-						</div>
+							</div>
+						)}
 
-						<button
-							onClick={handleNextPage}
-							disabled={currentPage === pagination.pages}
-							className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-						>
-							Next
-							<ChevronRight className="h-4 w-4 ml-1" />
-						</button>
-					</div>
-				)}
-
-				{/* Pagination info */}
-				{pagination.total > 0 && (
-					<div className="mt-4 text-center text-sm text-gray-600">
-						Showing {(currentPage - 1) * pagination.limit + 1} to{' '}
-						{Math.min(currentPage * pagination.limit, pagination.total)} of{' '}
-						{pagination.total} matches
-					</div>
+						{/* Pagination info */}
+						{pagination.total > 0 && (
+							<div className="mt-4 text-center text-sm text-gray-600">
+								Showing {(currentPage - 1) * pagination.limit + 1} to{' '}
+								{Math.min(currentPage * pagination.limit, pagination.total)} of{' '}
+								{pagination.total} matches
+							</div>
+						)}
+					</>
 				)}
 			</div>
 		</div>

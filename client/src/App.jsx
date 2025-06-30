@@ -5,8 +5,7 @@ import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import PredictionsPage from './pages/PredictionsPage'
 import ResultsPage from './pages/ResultsPage'
-import HeadToHeadPage from './pages/HeadToHeadPage'
-import PlayerStatsPage from './pages/PlayerStatsPage'
+import RankingsPage from './pages/RankingsPage'
 
 function App() {
 	return (
@@ -18,8 +17,7 @@ function App() {
 						<Route path="/" element={<HomePage />} />
 						<Route path="/predictions" element={<PredictionsPage />} />
 						<Route path="/results" element={<ResultsPage />} />
-						<Route path="/head-to-head" element={<HeadToHeadPage />} />
-						<Route path="/players" element={<PlayerStatsPage />} />
+						<Route path="/players" element={<RankingsPage />} />
 					</Routes>
 				</main>
 				<Footer />

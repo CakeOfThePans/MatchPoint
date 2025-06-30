@@ -60,8 +60,8 @@ model Player {
   player_id         Int      @id
   team_name         String
   team_hash_image   String
-  rank              Int
-  points            Int
+  rank              Int?
+  points            Int?
   next_win_points   Int?
 
   // Relations
