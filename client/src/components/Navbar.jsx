@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
 	BarChart2Icon,
@@ -7,19 +7,27 @@ import {
 	SwordsIcon,
 	Trophy,
 	UserIcon,
+	Menu,
+	X,
 } from 'lucide-react'
 
 const Navbar = () => {
 	const location = useLocation()
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
 	const scrollToTop = () => {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
+		setIsMobileMenuOpen(false)
 	}
 
 	const isActive = (path) => {
 		return location.pathname === path
 			? 'bg-green-100 text-green-800'
 			: 'text-gray-700 hover:bg-gray-100'
+	}
+
+	const handleMobileMenuToggle = () => {
+		setIsMobileMenuOpen(!isMobileMenuOpen)
 	}
 
 	return (
@@ -101,120 +109,88 @@ const Navbar = () => {
 								</li>
 							</ul>
 						</nav>
+						{/* Mobile hamburger menu button */}
+						<button
+							onClick={handleMobileMenuToggle}
+							className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100"
+							aria-label="Toggle mobile menu"
+						>
+							{isMobileMenuOpen ? (
+								<X className="h-6 w-6" />
+							) : (
+								<Menu className="h-6 w-6" />
+							)}
+						</button>
 					</div>
 				</div>
+				{/* Mobile dropdown menu */}
+				{isMobileMenuOpen && (
+					<div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+						<div className="px-4 py-2 space-y-1">
+							<Link
+								to="/"
+								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+									location.pathname === '/'
+										? 'bg-green-100 text-green-800'
+										: 'text-gray-700 hover:bg-gray-100'
+								}`}
+								onClick={scrollToTop}
+							>
+								<HomeIcon className="h-5 w-5 mr-3" />
+								Home
+							</Link>
+							<Link
+								to="/predictions"
+								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+									location.pathname === '/predictions'
+										? 'bg-green-100 text-green-800'
+										: 'text-gray-700 hover:bg-gray-100'
+								}`}
+								onClick={scrollToTop}
+							>
+								<BarChart2Icon className="h-5 w-5 mr-3" />
+								Predictions
+							</Link>
+							<Link
+								to="/results"
+								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+									location.pathname === '/results'
+										? 'bg-green-100 text-green-800'
+										: 'text-gray-700 hover:bg-gray-100'
+								}`}
+								onClick={scrollToTop}
+							>
+								<HistoryIcon className="h-5 w-5 mr-3" />
+								Results
+							</Link>
+							<Link
+								to="/head-to-head"
+								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+									location.pathname === '/head-to-head'
+										? 'bg-green-100 text-green-800'
+										: 'text-gray-700 hover:bg-gray-100'
+								}`}
+								onClick={scrollToTop}
+							>
+								<SwordsIcon className="h-5 w-5 mr-3" />
+								Head to Head
+							</Link>
+							<Link
+								to="/players"
+								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+									location.pathname === '/players'
+										? 'bg-green-100 text-green-800'
+										: 'text-gray-700 hover:bg-gray-100'
+								}`}
+								onClick={scrollToTop}
+							>
+								<UserIcon className="h-5 w-5 mr-3" />
+								Players
+							</Link>
+						</div>
+					</div>
+				)}
 			</header>
-			{/* Mobile navigation */}
-			<div className="z-20 md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-				<div className="grid grid-cols-5 h-16">
-					<Link
-						to="/"
-						className="flex flex-col items-center justify-center"
-						onClick={scrollToTop}
-					>
-						<HomeIcon
-							className={`h-5 w-5 ${
-								location.pathname === '/' ? 'text-green-600' : 'text-gray-500'
-							}`}
-						/>
-						<span
-							className={`text-xs mt-1 ${
-								location.pathname === '/' ? 'text-green-600' : 'text-gray-500'
-							}`}
-						>
-							Home
-						</span>
-					</Link>
-					<Link
-						to="/predictions"
-						className="flex flex-col items-center justify-center"
-						onClick={scrollToTop}
-					>
-						<BarChart2Icon
-							className={`h-5 w-5 ${
-								location.pathname === '/predictions'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						/>
-						<span
-							className={`text-xs mt-1 ${
-								location.pathname === '/predictions'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						>
-							Predictions
-						</span>
-					</Link>
-					<Link
-						to="/results"
-						className="flex flex-col items-center justify-center"
-						onClick={scrollToTop}
-					>
-						<HistoryIcon
-							className={`h-5 w-5 ${
-								location.pathname === '/results'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						/>
-						<span
-							className={`text-xs mt-1 ${
-								location.pathname === '/results'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						>
-							Results
-						</span>
-					</Link>
-					<Link
-						to="/head-to-head"
-						className="flex flex-col items-center justify-center"
-						onClick={scrollToTop}
-					>
-						<SwordsIcon
-							className={`h-5 w-5 ${
-								location.pathname === '/head-to-head'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						/>
-						<span
-							className={`text-xs mt-1 ${
-								location.pathname === '/head-to-head'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						>
-							Head to Head
-						</span>
-					</Link>
-					<Link
-						to="/players"
-						className="flex flex-col items-center justify-center"
-						onClick={scrollToTop}
-					>
-						<UserIcon
-							className={`h-5 w-5 ${
-								location.pathname === '/players'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						/>
-						<span
-							className={`text-xs mt-1 ${
-								location.pathname === '/players'
-									? 'text-green-600'
-									: 'text-gray-500'
-							}`}
-						>
-							Players
-						</span>
-					</Link>
-				</div>
-			</div>
 		</>
 	)
 }
