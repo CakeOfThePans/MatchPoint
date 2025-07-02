@@ -76,17 +76,21 @@ export const getLeagueById = async (id) => {
 }
 
 // Player API functions
-export const getPlayers = async (
+export const getPlayerRanks = async (
 	page = 1,
 	limit = 20,
 	sortBy = 'rank',
-	sortOrder = 'asc'
+	sortOrder = 'asc',
+	search = ''
 ) => {
 	const params = {
 		page,
 		limit,
 		sortBy,
 		sortOrder,
+	}
+	if (search && search.trim()) {
+		params.search = search.trim()
 	}
 
 	return api.get('/players', { params })

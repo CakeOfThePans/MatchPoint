@@ -31,7 +31,7 @@ const Navbar = () => {
 
 	return (
 		<>
-			<header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-20">
+			<header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 					<div className="h-10 flex items-center justify-between">
 						<Link
@@ -116,7 +116,7 @@ const Navbar = () => {
 						<div className="px-4 py-2 space-y-1">
 							<Link
 								to="/"
-								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+								className={`px-3 py-2 rounded-md text-base font-medium flex items-center ${
 									location.pathname === '/'
 										? 'bg-green-100 text-green-800'
 										: 'text-gray-700 hover:bg-gray-100'
@@ -128,7 +128,7 @@ const Navbar = () => {
 							</Link>
 							<Link
 								to="/predictions"
-								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+								className={` px-3 py-2 rounded-md text-base font-medium flex items-center ${
 									location.pathname === '/predictions'
 										? 'bg-green-100 text-green-800'
 										: 'text-gray-700 hover:bg-gray-100'
@@ -140,7 +140,7 @@ const Navbar = () => {
 							</Link>
 							<Link
 								to="/results"
-								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+								className={` px-3 py-2 rounded-md text-base font-medium flex items-center ${
 									location.pathname === '/results'
 										? 'bg-green-100 text-green-800'
 										: 'text-gray-700 hover:bg-gray-100'
@@ -152,7 +152,7 @@ const Navbar = () => {
 							</Link>
 							<Link
 								to="/players"
-								className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
+								className={` px-3 py-2 rounded-md text-base font-medium flex items-center ${
 									location.pathname === '/players'
 										? 'bg-green-100 text-green-800'
 										: 'text-gray-700 hover:bg-gray-100'

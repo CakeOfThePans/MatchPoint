@@ -5,7 +5,7 @@ const getAllLeagues = async (req, res) => {
 	try {
 		const leagues = await prisma.league.findMany({
 			orderBy: {
-				competition_name: 'asc',
+				last_checked: 'desc',
 			},
 		})
 

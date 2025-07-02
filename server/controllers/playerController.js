@@ -1,17 +1,43 @@
 import prisma from '../lib/prisma.js'
 
-// Get all players
-const getAllPlayers = async (req, res) => {
+// Get player ranks (only players with rank and points)
+const getPlayerRanks = async (req, res) => {
 	try {
 		const {
 			page = 1,
 			limit = 50,
 			sortBy = 'rank',
 			sortOrder = 'asc',
+			search = '',
 		} = req.query
 		const skip = (parseInt(page) - 1) * parseInt(limit)
 
+		// Build where clause for search and rank/points filter
+		const whereClause = {
+			AND: [
+				// Only get players with rank and points
+				{
+					rank: {
+						not: null,
+					},
+					points: {
+						not: null,
+					},
+				},
+				// Add search filter if provided
+				search.trim()
+					? {
+							team_name: {
+								contains: search.trim(),
+								mode: 'insensitive', // Case-insensitive search
+							},
+					  }
+					: {},
+			],
+		}
+
 		const players = await prisma.player.findMany({
+			where: whereClause,
 			orderBy: {
 				[sortBy]: sortOrder,
 			},
@@ -19,7 +45,9 @@ const getAllPlayers = async (req, res) => {
 			take: parseInt(limit),
 		})
 
-		const total = await prisma.player.count()
+		const total = await prisma.player.count({
+			where: whereClause,
+		})
 
 		res.status(200).json({
 			success: true,
@@ -32,10 +60,10 @@ const getAllPlayers = async (req, res) => {
 			},
 		})
 	} catch (error) {
-		console.error('Error fetching players:', error)
+		console.error('Error fetching player ranks:', error)
 		res.status(500).json({
 			success: false,
-			error: 'Failed to fetch players',
+			error: 'Failed to fetch player ranks',
 		})
 	}
 }
@@ -79,4 +107,4 @@ const getPlayerById = async (req, res) => {
 	}
 }
 
-export { getAllPlayers, getPlayerById }
+export { getPlayerRanks, getPlayerById }

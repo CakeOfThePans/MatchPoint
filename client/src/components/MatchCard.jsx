@@ -87,7 +87,7 @@ export const MatchCard = ({ match, isPast = false }) => {
 						</div>
 						<div className="ml-3">
 							<p className="font-medium">{homeTeam.team_name}</p>
-							{!isPast && (
+							{!isPast && homeTeam.rank && (
 								<p className="text-sm text-gray-600">Rank {homeTeam.rank}</p>
 							)}
 						</div>
@@ -116,7 +116,7 @@ export const MatchCard = ({ match, isPast = false }) => {
 						</div>
 						<div className="ml-3">
 							<p className="font-medium">{awayTeam.team_name}</p>
-							{!isPast && (
+							{!isPast && awayTeam.rank && (
 								<p className="text-sm text-gray-600">Rank {awayTeam.rank}</p>
 							)}
 						</div>

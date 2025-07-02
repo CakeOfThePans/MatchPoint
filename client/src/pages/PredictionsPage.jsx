@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import { Search, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
 import { getMatches, getMatchesByLeague } from '../utils/api'
 
 export const PredictionsPage = () => {
+	const location = useLocation()
+
+	// Initialize state with navigation values
+	const initialSearchQuery = location.state?.searchQuery || ''
+	const initialPredictionType = location.state?.predictionType || 'upcoming'
+
 	const [selectedTournament, setSelectedTournament] = useState(null)
-	const [searchInput, setSearchInput] = useState('') // Local state for input value
-	const [searchQuery, setSearchQuery] = useState('') // Actual search term sent to API
+	const [searchInput, setSearchInput] = useState(initialSearchQuery) // Local state for input value
+	const [searchQuery, setSearchQuery] = useState(initialSearchQuery) // Actual search term sent to API
 	const [matches, setMatches] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
 	const [currentPage, setCurrentPage] = useState(1)
-	const [predictionType, setPredictionType] = useState('upcoming') // 'upcoming' or 'past'
+	const [predictionType, setPredictionType] = useState(initialPredictionType) // 'upcoming' or 'past'
 	const [pagination, setPagination] = useState({
 		page: 1,
 		limit: 12,
@@ -178,22 +185,6 @@ export const PredictionsPage = () => {
 		return pages
 	}
 
-	if (error) {
-		return (
-			<div className="bg-gray-50 min-h-screen w-full flex items-center justify-center">
-				<div className="text-center">
-					<p className="text-red-600 mb-4">{error}</p>
-					<button
-						onClick={() => window.location.reload()}
-						className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-					>
-						Try Again
-					</button>
-				</div>
-			</div>
-		)
-	}
-
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -213,7 +204,7 @@ export const PredictionsPage = () => {
 						<div className="inline-flex bg-gray-100 rounded-md p-1 shadow-sm">
 							<button
 								onClick={() => setPredictionType('upcoming')}
-								className={`px-4 py-2 rounded text-sm font-medium transition-all ${
+								className={`px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'upcoming'
 										? 'bg-white text-green-700 shadow-sm'
 										: 'text-gray-500 hover:text-gray-700'
@@ -223,7 +214,7 @@ export const PredictionsPage = () => {
 							</button>
 							<button
 								onClick={() => setPredictionType('past')}
-								className={`px-4 py-2 rounded text-sm font-medium transition-all ${
+								className={`px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'past'
 										? 'bg-white text-green-700 shadow-sm'
 										: 'text-gray-500 hover:text-gray-700'
@@ -247,7 +238,7 @@ export const PredictionsPage = () => {
 							</div>
 							<input
 								type="text"
-								className="block w-full pl-10 pr-10 sm:text-sm border border-gray-300 rounded-md py-3 focus:outline-none focus:border-green-500"
+								className="block w-full pl-10 pr-10 sm:text-sm bg-white border border-gray-300 rounded-md py-3 focus:outline-none focus:border-green-500"
 								placeholder="Search by player name..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
@@ -256,7 +247,7 @@ export const PredictionsPage = () => {
 							{(searchInput || searchQuery) && (
 								<button
 									onClick={handleClear}
-									className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+									className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
 								>
 									<X className="h-5 w-5" />
 								</button>
@@ -264,7 +255,7 @@ export const PredictionsPage = () => {
 						</div>
 						<button
 							onClick={handleSearch}
-							className="px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none"
+							className="px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none cursor-pointer"
 						>
 							Search
 						</button>
@@ -279,55 +270,76 @@ export const PredictionsPage = () => {
 							<p className="mt-3 text-gray-600">Loading matches...</p>
 						</div>
 					</div>
+				) : error ? (
+					<div className="flex items-center justify-center py-16">
+						<div className="text-center">
+							<p className="text-red-600 mb-4">{error}</p>
+							<button
+								onClick={() => window.location.reload()}
+								className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+							>
+								Try Again
+							</button>
+						</div>
+					</div>
 				) : (
 					<>
 						{/* Group matches by date */}
 						<div className="space-y-8">
-							{matches.length > 0 ? (
-								groupMatchesByDate(matches).map((group) => (
-									<div key={group.date}>
-										<div className="flex items-center mb-4">
-											<Calendar className="h-5 w-5 text-green-600 mr-2" />
-											<h2 className="text-xl font-semibold text-gray-900">
-												{group.date}
-											</h2>
+							{(() => {
+								// Filter matches based on prediction type
+								const filteredMatches =
+									predictionType === 'past'
+										? matches.filter((match) => match.winner_id) // In case a match doesn't have a winner then don't show it
+										: matches
+
+								return filteredMatches.length > 0 ? (
+									groupMatchesByDate(filteredMatches).map((group) => (
+										<div key={group.date}>
+											<div className="flex items-center mb-4">
+												<Calendar className="h-5 w-5 text-green-600 mr-2" />
+												<h2 className="text-xl font-semibold text-gray-900">
+													{group.date}
+												</h2>
+											</div>
+											<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+												{group.matches.map((match) => (
+													<MatchCard
+														key={match.match_id}
+														match={match}
+														isPast={predictionType === 'past'}
+													/>
+												))}
+											</div>
 										</div>
-										<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-											{group.matches.map((match) => (
-												<MatchCard
-													key={match.match_id}
-													match={match}
-													isPast={predictionType === 'past'}
-												/>
-											))}
-										</div>
+									))
+								) : (
+									<div className="text-center py-12">
+										<p className="text-gray-500">
+											{searchQuery
+												? 'No matches found for your search criteria.'
+												: predictionType === 'past'
+												? 'No completed matches available.'
+												: 'No upcoming matches available.'}
+										</p>
 									</div>
-								))
-							) : (
-								<div className="text-center py-12">
-									<p className="text-gray-500">
-										{searchQuery
-											? 'No matches found for your search criteria.'
-											: `No ${
-													predictionType === 'upcoming' ? 'upcoming' : 'past'
-											  } matches available.`}
-									</p>
-								</div>
-							)}
+								)
+							})()}
 						</div>
 						{/* Pagination controls */}
 						{pagination.pages > 1 && (
-							<div className="mt-8 flex justify-center items-center space-x-2">
+							<div className="mt-8 flex justify-center items-center space-x-1.5 sm:space-x-3">
 								<button
 									onClick={handlePreviousPage}
 									disabled={currentPage === 1}
-									className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
 								>
-									<ChevronLeft className="h-4 w-4 mr-1" />
-									Previous
+									<ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+									<span className="hidden sm:inline">Previous</span>
+									<span className="sm:hidden">Prev</span>
 								</button>
 
-								<div className="flex items-center space-x-1">
+								<div className="flex items-center space-x-1 sm:space-x-2">
 									{getPageNumbers().map((page, index) => (
 										<button
 											key={index}
@@ -335,12 +347,12 @@ export const PredictionsPage = () => {
 												typeof page === 'number' ? handlePageChange(page) : null
 											}
 											disabled={page === '...'}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
+											className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-md text-sm sm:text-base font-medium min-w-[32px] sm:min-w-[44px] ${
 												page === '...'
 													? 'text-gray-400 cursor-default'
 													: currentPage === page
 													? 'bg-green-600 text-white'
-													: 'text-gray-700 hover:bg-gray-200'
+													: 'text-gray-700 hover:bg-gray-200 cursor-pointer'
 											}`}
 										>
 											{page}
@@ -351,10 +363,11 @@ export const PredictionsPage = () => {
 								<button
 									onClick={handleNextPage}
 									disabled={currentPage === pagination.pages}
-									className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
 								>
-									Next
-									<ChevronRight className="h-4 w-4 ml-1" />
+									<span className="hidden sm:inline">Next</span>
+									<span className="sm:hidden">Next</span>
+									<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1 sm:ml-2" />
 								</button>
 							</div>
 						)}

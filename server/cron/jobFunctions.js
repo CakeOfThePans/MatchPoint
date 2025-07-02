@@ -318,8 +318,10 @@ const getBettingOdds = async (matchId) => {
 			},
 		})
 		console.log(`Betting odds for match ${matchId} updated successfully`)
+		return true
 	} catch (error) {
-		console.error('Error fetching betting odds:', error)
+		console.error(`Error fetching betting odds for match ${matchId}:`, error)
+		return false
 	}
 }
 
@@ -410,11 +412,19 @@ const updatePredictions = async () => {
 
 			// On the off chance the match doesn't have betting odds yet, we should get them
 			if (!match.home_team_odds || !match.away_team_odds) {
-				await getBettingOdds(match.match_id)
+				let success = await getBettingOdds(match.match_id)
+				if (!success) {
+					continue
+				}
 			}
 
 			// Get the predictions for the match
 			let prediction = await getPredictions(match.match_id)
+
+			// If the prediction failed, we should skip it
+			if (!prediction) {
+				continue
+			}
 
 			// Update the match with the predictions
 			await prisma.match.update({
@@ -471,6 +481,11 @@ const updateMLResults = async () => {
 		let incorrectPredictions = 0
 
 		for (let match of finishedMatches) {
+			// If the match doesn't have a winner prediction or winner, we shouldn't count it
+			if (!match.winner_prediction_id || !match.winner_id) {
+				continue
+			}
+			
 			if (match.winner_prediction_id === match.winner_id) {
 				correctPredictions++
 			} else {
@@ -533,6 +548,11 @@ const updateMLResults = async () => {
 			let incorrectPredictions = 0
 
 			for (let match of leagueMatches) {
+				// If the match doesn't have a winner prediction or winner, we shouldn't count it
+				if (!match.winner_prediction_id || !match.winner_id) {
+					continue
+				}
+
 				if (match.winner_prediction_id === match.winner_id) {
 					correctPredictions++
 				} else {
@@ -590,6 +610,17 @@ const updateATPRankings = async () => {
 				hasMore = false
 			}
 		}
+
+		// Reset all player rankings to null
+		// This is to ensure that anyone who is no longer in the top 500 will have their rank reset since the API only returns the top 500
+		// And this'll reset the rankings at the end of the year as well
+		await prisma.player.updateMany({
+			data: {
+				rank: null,
+				points: null,
+				next_win_points: null,
+			},
+		})
 
 		// Store the ranks in the database
 		for (let rank of allRanks) {
