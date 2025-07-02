@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Search, Calendar, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
@@ -271,12 +271,15 @@ export const PredictionsPage = () => {
 						</div>
 					</div>
 				) : error ? (
-					<div className="flex items-center justify-center py-16">
-						<div className="text-center">
-							<p className="text-red-600 mb-4">{error}</p>
+					<div className="mb-8 bg-red-50 border border-red-200 rounded-md p-4">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center">
+								<AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+								<p className="text-red-800">{error}</p>
+							</div>
 							<button
 								onClick={() => window.location.reload()}
-								className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+								className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
 							>
 								Try Again
 							</button>
