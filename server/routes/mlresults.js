@@ -4,6 +4,7 @@ import {
 	getAllMLResultsByLeague,
 	getMLResultsByLeagueId,
 	getMLResultsByGrandSlam,
+	getMLResultsBySurface,
 } from '../controllers/mlResultController.js'
 
 const router = express.Router()
@@ -19,5 +20,8 @@ router.get('/leagues/:leagueId', getMLResultsByLeagueId)
 
 // GET /api/mlresults/grand-slam - Get ML results for Grand Slam tournaments only
 router.get('/grand-slam', getMLResultsByGrandSlam)
+
+// GET /api/mlresults/surface - Get ML results grouped by surface type
+router.get('/surface', getMLResultsBySurface)
 
 export default router

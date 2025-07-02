@@ -194,7 +194,7 @@ const getMLResultsByGrandSlam = async (req, res) => {
 
 		res.status(200).json({
 			success: true,
-			data: resultsWithAccuracy
+			data: resultsWithAccuracy,
 		})
 	} catch (error) {
 		console.error('Error fetching Grand Slam ML results:', error)
@@ -205,9 +205,85 @@ const getMLResultsByGrandSlam = async (req, res) => {
 	}
 }
 
+// Get ML results grouped by surface type
+const getMLResultsBySurface = async (req, res) => {
+	try {
+		const mlResults = await prisma.mLResultByLeague.findMany({
+			include: {
+				league: {
+					select: {
+						league_id: true,
+						competition_name: true,
+						city_name: true,
+						surface_type: true,
+					},
+				},
+			},
+		})
+
+		// Group results by surface type, combining hardcourt variants
+		const surfaceGroups = {}
+
+		mlResults.forEach((result) => {
+			let surfaceType = result.league.surface_type
+
+			// Combine hardcourt indoor and outdoor into just "Hardcourt"
+			if (
+				surfaceType === 'Hardcourt Indoor' ||
+				surfaceType === 'Hardcourt Outdoor'
+			) {
+				surfaceType = 'Hardcourt'
+			}
+
+			if (!surfaceGroups[surfaceType]) {
+				surfaceGroups[surfaceType] = {
+					surface_type: surfaceType,
+					correct_predictions: 0,
+					incorrect_predictions: 0,
+					total_predictions: 0,
+					accuracy_percentage: 0,
+				}
+			}
+
+			surfaceGroups[surfaceType].correct_predictions +=
+				result.correct_predictions
+			surfaceGroups[surfaceType].incorrect_predictions +=
+				result.incorrect_predictions
+		})
+
+		// Calculate totals and accuracy for each surface type
+		const resultsBySurface = Object.values(surfaceGroups).map((group) => {
+			const totalPredictions =
+				group.correct_predictions + group.incorrect_predictions
+			const accuracy =
+				totalPredictions > 0
+					? ((group.correct_predictions / totalPredictions) * 100).toFixed(2)
+					: 0
+
+			return {
+				...group,
+				total_predictions: totalPredictions,
+				accuracy_percentage: parseFloat(accuracy),
+			}
+		})
+
+		res.status(200).json({
+			success: true,
+			data: resultsBySurface,
+		})
+	} catch (error) {
+		console.error('Error fetching ML results by surface:', error)
+		res.status(500).json({
+			success: false,
+			error: 'Failed to fetch ML results by surface',
+		})
+	}
+}
+
 export {
 	getOverallMLResults,
 	getAllMLResultsByLeague,
 	getMLResultsByLeagueId,
 	getMLResultsByGrandSlam,
+	getMLResultsBySurface,
 }

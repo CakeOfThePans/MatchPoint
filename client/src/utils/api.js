@@ -112,3 +112,7 @@ export const getMLResultsByLeague = async () => {
 export const getMLResultsByGrandSlam = async () => {
 	return api.get('/mlresults/grand-slam')
 }
+
+export const getMLResultsBySurface = async () => {
+	return api.get('/mlresults/surface')
+}
