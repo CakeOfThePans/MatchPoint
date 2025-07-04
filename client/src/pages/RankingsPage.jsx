@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Search, User, X, ChevronLeft, ChevronRight, Info, AlertCircle } from 'lucide-react'
+import {
+	Search,
+	User,
+	X,
+	ChevronLeft,
+	ChevronRight,
+	Info,
+	AlertCircle,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getPlayerRanks } from '../utils/api'
 import Tooltip from '../components/Tooltip'
@@ -225,7 +233,7 @@ const RankingsPage = () => {
 								<table className="min-w-full divide-y divide-gray-200">
 									<thead className="bg-green-600 text-white">
 										<tr>
-											<th className="px-4 sm:px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">
+											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
 												<Tooltip content="A player's real time ranking based on points earned from results in the current week and points dropped in the current week">
 													<div className="flex items-center gap-1">
 														Live Rank
@@ -233,7 +241,7 @@ const RankingsPage = () => {
 													</div>
 												</Tooltip>
 											</th>
-											<th className="px-4 sm:px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">
+											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
 												<Tooltip content="The full name of the tennis player. Click to view their past match predictions.">
 													<div className="flex items-center gap-1">
 														Name
@@ -241,7 +249,7 @@ const RankingsPage = () => {
 													</div>
 												</Tooltip>
 											</th>
-											<th className="px-4 sm:px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">
+											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
 												<Tooltip content="A player's real-time points total reflecting points earned and dropped this week.">
 													<div className="flex items-center gap-1">
 														Live Points
@@ -249,7 +257,7 @@ const RankingsPage = () => {
 													</div>
 												</Tooltip>
 											</th>
-											<th className="px-4 sm:px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">
+											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
 												<Tooltip content="New live points total if the player wins next match.">
 													<div className="flex items-center gap-1">
 														Next Win Points
@@ -263,15 +271,15 @@ const RankingsPage = () => {
 										{players.length > 0 ? (
 											players.map((player) => (
 												<tr key={player.player_id} className="hover:bg-gray-50">
-													<td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-														<div className="text-lg font-bold text-gray-900">
+													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
+														<div className="text-sm sm:text-lg font-bold text-gray-900">
 															{player.rank || 'N/A'}
 														</div>
 													</td>
-													<td className="px-4 sm:px-6 py-4">
+													<td className="px-1 sm:px-6 py-1 sm:py-4">
 														<div className="flex items-center">
-															<div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-																<div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+															<div className="flex-shrink-0 h-6 w-6 sm:h-10 sm:w-10">
+																<div className="h-6 w-6 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
 																	{!imageErrors[player.player_id] ? (
 																		<img
 																			src={`https://images.sportdevs.com/${player.team_hash_image}.png`}
@@ -285,11 +293,11 @@ const RankingsPage = () => {
 																			}
 																		/>
 																	) : (
-																		<User className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+																		<User className="h-4 w-4 sm:h-6 sm:w-6 text-gray-400" />
 																	)}
 																</div>
 															</div>
-															<div className="ml-2 sm:ml-4 flex-1 min-w-0">
+															<div className="ml-1 sm:ml-4 flex-1 min-w-0">
 																<button
 																	onClick={() =>
 																		handlePlayerClick(player.team_name)
@@ -301,12 +309,12 @@ const RankingsPage = () => {
 															</div>
 														</div>
 													</td>
-													<td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
 														<div className="text-xs sm:text-sm text-gray-900">
 															{player.points || 'N/A'} pts
 														</div>
 													</td>
-													<td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
 														<div className="text-xs sm:text-sm text-gray-900">
 															{player.next_win_points || 'N/A'} pts
 														</div>
@@ -334,18 +342,18 @@ const RankingsPage = () => {
 
 						{/* Pagination controls */}
 						{pagination.pages > 1 && (
-							<div className="mt-8 flex justify-center items-center space-x-1.5 sm:space-x-3">
+							<div className="mt-6 sm:mt-8 flex justify-center items-center space-x-1 sm:space-x-3">
 								<button
 									onClick={handlePreviousPage}
 									disabled={currentPage === 1}
-									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
+									className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
 								>
-									<ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+									<ChevronLeft className="h-3 w-3 sm:h-5 sm:w-5 mr-0.5 sm:mr-2" />
 									<span className="hidden sm:inline">Previous</span>
 									<span className="sm:hidden">Prev</span>
 								</button>
 
-								<div className="flex items-center space-x-1 sm:space-x-2">
+								<div className="flex items-center space-x-0.5 sm:space-x-2">
 									{getPageNumbers().map((page, index) => (
 										<button
 											key={index}
@@ -353,7 +361,7 @@ const RankingsPage = () => {
 												typeof page === 'number' ? handlePageChange(page) : null
 											}
 											disabled={page === '...'}
-											className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-md text-sm sm:text-base font-medium min-w-[32px] sm:min-w-[44px] ${
+											className={`px-1.5 sm:px-4 py-1 sm:py-2.5 rounded-md text-xs sm:text-base font-medium min-w-[24px] sm:min-w-[44px] ${
 												page === '...'
 													? 'text-gray-400 cursor-default'
 													: currentPage === page
@@ -369,18 +377,18 @@ const RankingsPage = () => {
 								<button
 									onClick={handleNextPage}
 									disabled={currentPage === pagination.pages}
-									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
+									className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
 								>
 									<span className="hidden sm:inline">Next</span>
 									<span className="sm:hidden">Next</span>
-									<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1 sm:ml-2" />
+									<ChevronRight className="h-3 w-3 sm:h-5 sm:w-5 ml-0.5 sm:ml-2" />
 								</button>
 							</div>
 						)}
 
 						{/* Pagination info */}
 						{pagination.total > 0 && (
-							<div className="mt-4 text-center text-sm text-gray-600">
+							<div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-gray-600">
 								Showing {(currentPage - 1) * pagination.limit + 1} to{' '}
 								{Math.min(currentPage * pagination.limit, pagination.total)} of{' '}
 								{pagination.total} players

@@ -47,7 +47,7 @@ export const ResultsPage = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<h1 className="text-3xl font-bold text-gray-900 mb-2">Model Results</h1>
 				<p className="text-gray-500 mb-8">
-					Track our prediction model's performance and view past match results
+					Track our prediction model's performance across different surfaces and tournaments
 				</p>
 
 				{/* Loading state */}

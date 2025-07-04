@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Calendar, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react'
+import {
+	Search,
+	Calendar,
+	ChevronLeft,
+	ChevronRight,
+	X,
+	AlertCircle,
+} from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
@@ -331,18 +338,18 @@ export const PredictionsPage = () => {
 						</div>
 						{/* Pagination controls */}
 						{pagination.pages > 1 && (
-							<div className="mt-8 flex justify-center items-center space-x-1.5 sm:space-x-3">
+							<div className="mt-6 sm:mt-8 flex justify-center items-center space-x-1 sm:space-x-3">
 								<button
 									onClick={handlePreviousPage}
 									disabled={currentPage === 1}
-									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
+									className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
 								>
-									<ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+									<ChevronLeft className="h-3 w-3 sm:h-5 sm:w-5 mr-0.5 sm:mr-2" />
 									<span className="hidden sm:inline">Previous</span>
 									<span className="sm:hidden">Prev</span>
 								</button>
 
-								<div className="flex items-center space-x-1 sm:space-x-2">
+								<div className="flex items-center space-x-0.5 sm:space-x-2">
 									{getPageNumbers().map((page, index) => (
 										<button
 											key={index}
@@ -350,7 +357,7 @@ export const PredictionsPage = () => {
 												typeof page === 'number' ? handlePageChange(page) : null
 											}
 											disabled={page === '...'}
-											className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-md text-sm sm:text-base font-medium min-w-[32px] sm:min-w-[44px] ${
+											className={`px-1.5 sm:px-4 py-1 sm:py-2.5 rounded-md text-xs sm:text-base font-medium min-w-[24px] sm:min-w-[44px] ${
 												page === '...'
 													? 'text-gray-400 cursor-default'
 													: currentPage === page
@@ -366,18 +373,18 @@ export const PredictionsPage = () => {
 								<button
 									onClick={handleNextPage}
 									disabled={currentPage === pagination.pages}
-									className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-sm sm:text-base"
+									className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
 								>
 									<span className="hidden sm:inline">Next</span>
 									<span className="sm:hidden">Next</span>
-									<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1 sm:ml-2" />
+									<ChevronRight className="h-3 w-3 sm:h-5 sm:w-5 ml-0.5 sm:ml-2" />
 								</button>
 							</div>
 						)}
 
 						{/* Pagination info */}
 						{pagination.total > 0 && (
-							<div className="mt-4 text-center text-sm text-gray-600">
+							<div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-gray-600">
 								Showing {(currentPage - 1) * pagination.limit + 1} to{' '}
 								{Math.min(currentPage * pagination.limit, pagination.total)} of{' '}
 								{pagination.total} matches
