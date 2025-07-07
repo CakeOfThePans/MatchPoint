@@ -306,7 +306,8 @@ const getBettingOdds = async (matchId) => {
 			(period) => period.period_type === 'Full Time'
 		)
 		let Bet365Odds = fullMatchOdds[0].odds.find(
-			(odds) => odds.bookmaker_name === 'bet365' ||odds.bookmaker_name === 'Bet365'
+			(odds) =>
+				odds.bookmaker_name === 'bet365' || odds.bookmaker_name === 'Bet365'
 		)
 
 		// Update the match with the betting odds
@@ -356,29 +357,80 @@ const getDailyBettingOdds = async () => {
 // Get predictions for a match
 const getPredictions = async (matchId) => {
 	try {
-		// TODO: Implement prediction fetching logic
-		// For now just do based on the betting odds
+		// Get match and player data
 		let match = await prisma.match.findUnique({
 			where: {
 				match_id: matchId,
 			},
+			include: {
+				home_team: true,
+				away_team: true,
+			},
 		})
 
-		let homeTeamOdds = match.home_team_odds
-		let awayTeamOdds = match.away_team_odds
+		// Convert surface type to numeric value for the ML model
+		const surfaceMap = {
+			Hard: 0,
+			Clay: 1,
+			Grass: 2,
+		}
+		// Hardcourt Indoor and Hardcourt Outdoor are both considered "Hardcourt" so it'll be 0
+		const surfaceType = surfaceMap[match.ground_type] || 0
 
-		let homeTeamProb = 1 / homeTeamOdds
-		let awayTeamProb = 1 / awayTeamOdds
+		// Check if we have complete player data for full model
+		const hasCompleteData =
+			match.home_team?.rank &&
+			match.away_team?.rank &&
+			match.home_team?.points &&
+			match.away_team?.points &&
+			match.home_team_odds &&
+			match.away_team_odds
 
-		let homeTeamPredictionProb = homeTeamProb / (homeTeamProb + awayTeamProb)
-		let awayTeamPredictionProb = awayTeamProb / (homeTeamProb + awayTeamProb)
+		let predictionResponse
+		if (hasCompleteData) {
+			// Use full model with all features
+			const modelData = {
+				surface: surfaceType,
+				p1_rank: match.home_team.rank,
+				p2_rank: match.away_team.rank,
+				p1_points: match.home_team.points,
+				p2_points: match.away_team.points,
+				p1_b365_odds: match.home_team_odds,
+				p2_b365_odds: match.away_team_odds,
+			}
 
+			const response = await axios.post(
+				`${process.env.ML_API_URL}/predict`,
+				modelData
+			)
+			predictionResponse = response.data
+		} else if (match.home_team_odds && match.away_team_odds) {
+			// Fallback to odds-only model if we have odds
+			const modelData = {
+				surface: surfaceType,
+				p1_b365_odds: match.home_team_odds,
+				p2_b365_odds: match.away_team_odds,
+			}
+
+			const response = await axios.post(
+				`${process.env.ML_API_URL}/predict/odds-only`,
+				modelData
+			)
+			predictionResponse = response.data
+		} else {
+			// If we don't even have odds, we can't make a prediction
+			console.log(`Insufficient data for prediction for match ${matchId}`)
+			return null
+		}
+
+		console.log('Updated prediction for match', matchId)
 		return {
-			home_team_prediction_prob: homeTeamPredictionProb,
-			away_team_prediction_prob: awayTeamPredictionProb,
+			home_team_prediction_prob: predictionResponse.player1_win_probability,
+			away_team_prediction_prob: predictionResponse.player2_win_probability,
 		}
 	} catch (error) {
 		console.error('Error fetching predictions:', error)
+		return null
 	}
 }
 
@@ -406,7 +458,11 @@ const updatePredictions = async () => {
 				continue
 			}
 			// If the match is canceled/interrupted/suspended, we shouldn't update the predictions
-			if (match.status_type === 'canceled' || match.status_type === 'interrupted' || match.status_type === 'suspended') {
+			if (
+				match.status_type === 'canceled' ||
+				match.status_type === 'interrupted' ||
+				match.status_type === 'suspended'
+			) {
 				continue
 			}
 
@@ -485,7 +541,7 @@ const updateMLResults = async () => {
 			if (!match.winner_prediction_id || !match.winner_id) {
 				continue
 			}
-			
+
 			if (match.winner_prediction_id === match.winner_id) {
 				correctPredictions++
 			} else {
@@ -686,7 +742,4 @@ const runHourlyJobs = async () => {
 	}
 }
 
-export {
-	runDailyJobs,
-	runHourlyJobs,
-}
+export { runDailyJobs, runHourlyJobs, getPredictions }
