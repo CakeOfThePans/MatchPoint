@@ -137,7 +137,7 @@ export const ResultsPage = () => {
 												<div key={surface.surface_type}>
 													<div className="flex justify-between mb-1">
 														<span className="text-sm font-medium">
-															{surface.surface_type}
+															{surface.surface_type.charAt(0).toUpperCase() + surface.surface_type.slice(1)}
 														</span>
 														<span className="text-sm font-medium text-gray-500">
 															{surface.accuracy_percentage}%

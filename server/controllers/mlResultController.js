@@ -225,12 +225,13 @@ const getMLResultsBySurface = async (req, res) => {
 		const surfaceGroups = {}
 
 		mlResults.forEach((result) => {
-			let surfaceType = result.league.surface_type
+			// Convert surface type to lowercase
+			let surfaceType = result.league.surface_type.toLowerCase()
 
 			// Combine hardcourt indoor and outdoor into just "Hardcourt"
 			if (
-				surfaceType === 'Hardcourt Indoor' ||
-				surfaceType === 'Hardcourt Outdoor'
+				surfaceType === 'hardcourt indoor' ||
+				surfaceType === 'hardcourt outdoor'
 			) {
 				surfaceType = 'Hardcourt'
 			}

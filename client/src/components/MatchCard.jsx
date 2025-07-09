@@ -137,7 +137,7 @@ export const MatchCard = ({ match, isPast = false }) => {
 								{league.surface_type}
 							</span>
 						</p>
-						{match.winner_id && ( // If the match has a winner, show the winner
+						{match.winner_id && match.winner_prediction_id && ( // If the match has a winner and a prediction, show it
 							<span
 								className={`px-2 py-0.5 rounded-full text-xs font-semibold align-middle ${
 									match.winner_id === match.winner_prediction_id
