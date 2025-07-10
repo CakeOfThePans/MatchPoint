@@ -2,14 +2,21 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import os
 
 # Initialize FastAPI app
 app = FastAPI()
 
+# Get the directory where this script is located
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Load the model and feature names
 try:
-    model = joblib.load("../models/tennis_model.joblib")
-    model2 = joblib.load("../models/tennis_model2.joblib")
+    model_path = os.path.join(current_dir, "models", "tennis_model.joblib")
+    model2_path = os.path.join(current_dir, "models", "tennis_model2.joblib")
+
+    model = joblib.load(model_path)
+    model2 = joblib.load(model2_path)
 except Exception as e:
     raise Exception(f"Error loading the model: {str(e)}")
 
