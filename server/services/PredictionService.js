@@ -59,6 +59,9 @@ export const updatePredictionsByMatch = async (match) => {
 
 const getPredictionsByMatch = async (match) => {
 	try {
+		// Get ML API URL from environment variable
+		const mlApiUrl = process.env.ML_API_URL || 'http://localhost:8000'
+
 		// Convert surface type to numeric value for the ML model
 		const surfaceMap = {
 			Hard: 0,
@@ -91,7 +94,7 @@ const getPredictionsByMatch = async (match) => {
 			}
 
 			const response = await axios.post(
-				`${process.env.ML_API_URL}/predict`,
+				`${mlApiUrl}/predict`,
 				modelData
 			)
 			predictionResponse = response.data
@@ -104,7 +107,7 @@ const getPredictionsByMatch = async (match) => {
 			}
 
 			const response = await axios.post(
-				`${process.env.ML_API_URL}/predict/odds-only`,
+				`${mlApiUrl}/predict/odds-only`,
 				modelData
 			)
 			predictionResponse = response.data
