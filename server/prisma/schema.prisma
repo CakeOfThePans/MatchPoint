@@ -74,6 +74,7 @@ model MLResultOverall {
   id Int @id @default(1)
   correct_predictions Int
   incorrect_predictions Int
+  last_daily_run DateTime?
 }
 
 model MLResultByLeague {

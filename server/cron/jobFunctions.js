@@ -14,6 +14,21 @@ import {
 	updateOverallMLResults,
 	updateMLResultsByLeague,
 } from '../services/MLResultService.js'
+import prisma from '../lib/prisma.js'
+
+// Update the last daily run date
+const updateLastDailyRun = async () => {
+	await prisma.mLResultOverall.upsert({
+		where: { id: 1 },
+		update: { last_daily_run: new Date() },
+		create: {
+			id: 1,
+			correct_predictions: 0,
+			incorrect_predictions: 0,
+			last_daily_run: new Date(),
+		},
+	})
+}
 
 const runDailyJobs = async () => {
 	try {
@@ -47,6 +62,7 @@ const runDailyJobs = async () => {
 			await updatePredictionsByMatch(match)
 		}
 
+    await updateLastDailyRun()
 		console.log('Daily cron jobs completed successfully')
 	} catch (error) {
 		console.error('Error in daily cron jobs:', error)

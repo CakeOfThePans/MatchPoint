@@ -1,5 +1,21 @@
 import cron from 'node-cron'
 import { runDailyJobs, runHourlyJobs } from './jobFunctions.js'
+import prisma from '../lib/prisma.js'
+import { getDate } from '../utils/dateUtils.js'
+
+// Check if daily jobs have run today
+const hasDailyJobsRunToday = async () => {
+	const lastRunRecord = await prisma.mLResultOverall.findFirst()
+
+	if (!lastRunRecord || !lastRunRecord.last_daily_run) {
+		return false
+	}
+
+	const lastRunDate = new Date(lastRunRecord.last_daily_run)
+
+	// Compare the dates not the time
+	return getDate(lastRunDate) === getDate(new Date())
+}
 
 // Initialize all cron jobs
 const startCronJobs = () => {
@@ -23,6 +39,10 @@ const startCronJobs = () => {
 		'30 * * * *',
 		async () => {
 			console.log('Running hourly cron jobs at:', new Date().toISOString())
+			// If the daily jobs haven't run today, run them now
+			if (!(await hasDailyJobsRunToday())) {
+				await runDailyJobs()
+			}
 			await runHourlyJobs()
 		},
 		{
