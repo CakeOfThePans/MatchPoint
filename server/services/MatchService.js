@@ -1,4 +1,4 @@
-import prisma from '../../lib/prisma.js'
+import prisma from '../lib/prisma.js'
 import { fetchPaginatedData } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 import { getDate } from '../utils/dateUtils.js'
@@ -6,6 +6,10 @@ import { getDate } from '../utils/dateUtils.js'
 export const updateMatchesByLeague = async (leagueId, startDate, endDate) => {
 	try {
 		console.log('Updating matches...')
+
+		// Increment the end date by 1 day since the API isn't inclusive of the end date
+		endDate.setDate(endDate.getDate() + 1)
+
 		let matches = await fetchPaginatedData(API_CONFIG.ENDPOINTS.MATCHES, {
 			start_time: [`gte.${getDate(startDate)}`, `lt.${getDate(endDate)}`],
 			league_id: `eq.${leagueId}`,

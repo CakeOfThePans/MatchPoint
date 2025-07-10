@@ -1,4 +1,4 @@
-import prisma from '../../lib/prisma.js'
+import prisma from '../lib/prisma.js'
 import { fetchPaginatedData } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 
@@ -23,16 +23,16 @@ export const updateATPRankings = async () => {
 		})
 
 		for (let rank of atpRankings) {
-			await upsertPlayer(rank)
+			await upsertRanking(rank)
 		}
 
-    console.log(`Successfully processed ${atpRankings.length} player rankings`)
+		console.log(`Successfully processed ${atpRankings.length} player rankings`)
 	} catch (error) {
 		console.error('Error updating ATP rankings:', error)
 	}
 }
 
-const upsertPlayer = async (rank) => {
+const upsertRanking = async (rank) => {
 	try {
 		await prisma.player.upsert({
 			where: {
@@ -60,5 +60,47 @@ const upsertPlayer = async (rank) => {
 		)
 	} catch (error) {
 		console.error(`Error storing player ${rank.team_id}:`, error)
+	}
+}
+
+export const seedPlayers = async () => {
+	try {
+		let players = await fetchPaginatedData(API_CONFIG.ENDPOINTS.TEAMS, {
+			class_id: 'eq.415'
+		}, 'SPORTDEVS_API_KEY3')	// This will likely use around 200 API calls so we'll use a different API key to prevent the main API key from being used up
+
+		// Only keep single players (not doubles)
+		players = players.filter((player) => player.type === 1) // 2 is doubles
+		
+		for (let player of players) {
+			await upsertPlayer(player)
+		}
+
+		console.log(`Successfully processed ${players.length} players`)
+	} catch (error) {
+		throw error
+	}
+}
+
+const upsertPlayer = async (player) => {
+	try {
+		await prisma.player.upsert({
+			where: {
+				player_id: player.id,
+			},
+			update: {
+				team_name: player.name,
+				team_hash_image: player.hash_image,
+			},
+			create: {
+				player_id: player.id,
+				team_name: player.name,
+				team_hash_image: player.hash_image,
+			},
+		})
+
+		console.log(`Player ${player.id} (${player.name}) stored/updated successfully`)
+	} catch (error) {
+		throw error
 	}
 }

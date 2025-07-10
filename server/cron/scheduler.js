@@ -5,9 +5,9 @@ import { runDailyJobs, runHourlyJobs } from './jobFunctions.js'
 const startCronJobs = () => {
 	console.log('Initializing cron jobs...')
 
-	// Daily job - runs at 1:00 AM every day
+	// Daily job - runs at 12:00 AM (midnight) every day
 	cron.schedule(
-		'0 1 * * *',
+		'0 0 * * *',
 		async () => {
 			console.log('Running daily cron jobs at:', new Date().toISOString())
 			await runDailyJobs()

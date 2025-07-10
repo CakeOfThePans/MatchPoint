@@ -1,4 +1,4 @@
-import prisma from '../../lib/prisma.js'
+import prisma from '../lib/prisma.js'
 import { makeApiCall } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 import { getDate } from '../utils/dateUtils.js'
@@ -17,12 +17,9 @@ export const updateLeaguesByDate = async (date) => {
 		)
 
 		for (let league of atpLeagues) {
-			let leagueData = await makeApiCall(
-				API_CONFIG.ENDPOINTS.LEAGUES_INFO,
-				{
-					league_id: `eq.${league.league_id}`,
-				}
-			)
+			let leagueData = await makeApiCall(API_CONFIG.ENDPOINTS.LEAGUES_INFO, {
+				league_id: `eq.${league.league_id}`,
+			})
 
 			let leagueInfo = leagueData[0]
 
@@ -71,13 +68,13 @@ const upsertLeague = async (leagueInfo, date) => {
 export const getLeaguesByDateRange = async (startDate, endDate) => {
 	try {
 		const leagues = await prisma.league.findMany({
-      where: {
-        last_checked: {
-          gte: startDate,
-          lt: endDate,
-        },
-      },
-    })
+			where: {
+				last_checked: {
+					gte: startDate,
+					lt: endDate,
+				},
+			},
+		})
 		return leagues
 	} catch (error) {
 		console.error('Error getting leagues by date range:', error)

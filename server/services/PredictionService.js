@@ -1,6 +1,5 @@
-import prisma from '../../lib/prisma.js'
+import prisma from '../lib/prisma.js'
 import axios from 'axios'
-import { updateOddsByMatch } from './OddsService.js'
 
 export const updatePredictionsByMatch = async (match) => {
 	try {
@@ -24,12 +23,10 @@ export const updatePredictionsByMatch = async (match) => {
 			return
 		}
 
-		// On the off chance the match doesn't have betting odds yet, we should get them
+		// If the match doesn't have betting odds yet, we should skip
 		if (!match.home_team_odds || !match.away_team_odds) {
-			let success = await updateOddsByMatch(match.match_id)
-			if (!success) {
-				return
-			}
+			console.log('Match does not have betting odds, skipping prediction update')
+			return
 		}
 
 		let prediction = await getPredictionsByMatch(match)

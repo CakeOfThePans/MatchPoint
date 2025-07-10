@@ -7,6 +7,7 @@ export const API_CONFIG = {
 		MATCHES: '/matches',
 		ODDS: '/odds/match-winner',
 		RANKINGS: '/rankings',
+		TEAMS: '/teams',
 	},
 	PAGINATION: {
 		DEFAULT_LIMIT: 50,
