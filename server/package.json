@@ -10,7 +10,8 @@
 		"db:push": "prisma db push",
 		"db:migrate": "prisma migrate dev",
 		"db:seed:players": "node prisma/seedPlayers.js",
-		"db:seed:matches": "node prisma/seedMatches.js"
+		"db:seed:matches": "node prisma/seedMatches.js",
+		"update:predictions": "node scripts/updatePredictions.js"
 	},
 	"dependencies": {
 		"@prisma/client": "^6.10.1",

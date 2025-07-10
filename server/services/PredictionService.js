@@ -8,7 +8,7 @@ export const updatePredictionsByMatch = async (match) => {
 		// If the match is finished, we shouldn't update the predictions anymore unless there was no prediction yet
 		if (match.status_type === 'finished' && match.winner_prediction_id) {
 			console.log('Match is finished, skipping prediction update')
-			return
+			return false
 		}
 
 		// If the match is canceled/interrupted/suspended, we shouldn't update the predictions
@@ -20,19 +20,19 @@ export const updatePredictionsByMatch = async (match) => {
 			console.log(
 				'Match is canceled/interrupted/suspended, skipping prediction update'
 			)
-			return
+			return false
 		}
 
 		// If the match doesn't have betting odds yet, we should skip
 		if (!match.home_team_odds || !match.away_team_odds) {
 			console.log('Match does not have betting odds, skipping prediction update')
-			return
+			return false
 		}
 
 		let prediction = await getPredictionsByMatch(match)
 		if (!prediction) {
 			console.log('Unable to get predictions for match', match.match_id)
-			return
+			return false
 		}
 
 		// Update the match with the predictions
@@ -50,8 +50,10 @@ export const updatePredictionsByMatch = async (match) => {
 		})
 
 		console.log('Updated prediction for match', match.match_id)
+		return true
 	} catch (error) {
 		console.error('Error updating predictions by match:', error)
+		return false
 	}
 }
 
