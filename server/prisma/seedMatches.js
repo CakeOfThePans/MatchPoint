@@ -5,6 +5,7 @@ import { updateMatchesByLeague, getMatchesByDateRange } from '../services/MatchS
 import { updateOddsByMatch } from '../services/OddsService.js'
 import { updatePredictionsByMatch } from '../services/PredictionService.js'
 import { updateOverallMLResults, updateMLResultsByLeague } from '../services/MLResultService.js'
+import 'dotenv/config'
 
 const prisma = new PrismaClient()
 

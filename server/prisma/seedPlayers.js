@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { seedPlayers } from '../services/PlayerService.js'
 import { updateATPRankings } from '../services/PlayerService.js'
+import 'dotenv/config'
 
 const prisma = new PrismaClient()
 
