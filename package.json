@@ -1,0 +1,23 @@
+{
+	"name": "matchpoint",
+	"version": "1.0.0",
+	"description": "MatchPoint is a comprehensive tennis match prediction platform that combines machine learning models with a modern web application to predict tennis match outcomes. The project consists of three main components: a React frontend, a Node.js backend API, and a Python FastAPI machine learning service.",
+	"main": "index.js",
+	"scripts": {
+		"start": "concurrently \"cd server && npm run start\" \"cd model && uvicorn main:app --reload --port 8000\"",
+		"dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\" \"cd model && uvicorn main:app --reload --port 8000\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/CakeOfThePans/MatchPoint.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/CakeOfThePans/MatchPoint/issues"
+	},
+	"homepage": "https://github.com/CakeOfThePans/MatchPoint#readme",
+	"devDependencies": {
+		"concurrently": "^9.2.0"
+	}
+}

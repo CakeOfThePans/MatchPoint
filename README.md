@@ -118,11 +118,11 @@ cd client
 npm install
 ```
 
-Create a `.env` file in the client directory:
+Optional: Create a `.env` file in the client directory:
 
 ```env
 # Backend API base URL
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 ```
 
 Start the development server:
@@ -132,6 +132,25 @@ npm run dev
 ```
 
 The client will run on `http://localhost:5173`
+
+### 🚀 Quick Start (Alternative Method)
+
+**Optionally, you can start all services at once from the root directory:**
+
+After setting up all the environment files and installing dependencies in each directory, you can run:
+
+```bash
+# From the root directory, start all services concurrently
+npm run dev
+```
+
+This will start:
+
+- Backend server on `http://localhost:5000`
+- Frontend client on `http://localhost:5173`
+- ML service on `http://localhost:8000`
+
+**Note:** Make sure you have completed the setup steps for all three components (server, client, and model) before using this command.
 
 ## 📁 Component Details
 
@@ -271,7 +290,7 @@ SPORTDEVS_API_KEY3="your_sportdevs_api_key_3"
 
 ```env
 # Backend API base URL
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ## 🚀 Deployment
@@ -284,18 +303,32 @@ npm run build
 # Deploy the dist/ folder to your hosting service
 ```
 
-### Backend Deployment
+### Backend and ML Service Deployment
+
+**Option 1: Deploy individually**
 
 ```bash
+# Backend Deployment
 cd server
 npm install
 npm start
-```
 
-### ML Service Deployment
-
-```bash
+# ML Service Deployment
 cd model
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
+
+**Option 2: Deploy together from root directory**
+
+```bash
+# From the root directory, start backend and ML service concurrently
+npm run start
+```
+
+This will start:
+
+- Backend server on the configured port (default: 5000)
+- ML service on port 8000
+
+**Note:** The frontend must still be deployed statically by building it and serving the `dist/` folder from your hosting service.
