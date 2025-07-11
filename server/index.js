@@ -11,6 +11,15 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Health endpoint
+app.get('/health', (req, res) => {
+	res.status(200).json({
+		status: 'OK',
+		timestamp: new Date().toISOString(),
+		uptime: process.uptime(),
+	})
+})
+
 // API Routes
 import leagueRoutes from './routes/leagues.js'
 import matchRoutes from './routes/matches.js'
