@@ -135,9 +135,16 @@ The client will run on `http://localhost:5173`
 
 ### 🚀 Quick Start (Alternative Method)
 
-**Optionally, you can start all services at once from the root directory:**
+**Optionally, you can install all dependencies and start all services from the root directory:**
 
-After setting up all the environment files and installing dependencies in each directory, you can run:
+Install all dependencies at once:
+
+```bash
+# From the root directory, install dependencies for all components
+npm run install
+```
+
+After setting up all the environment files, you can start all services:
 
 ```bash
 # From the root directory, start all services concurrently
@@ -150,7 +157,7 @@ This will start:
 - Frontend client on `http://localhost:5173`
 - ML service on `http://localhost:8000`
 
-**Note:** Make sure you have completed the setup steps for all three components (server, client, and model) before using this command.
+**Note:** Make sure you have completed the setup steps for all three components (server, client, and model) before using these commands.
 
 ## 📁 Component Details
 
@@ -322,6 +329,9 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 **Option 2: Deploy together from root directory**
 
 ```bash
+# Install all dependencies at once
+npm run install
+
 # From the root directory, start backend and ML service concurrently
 npm run start
 ```
