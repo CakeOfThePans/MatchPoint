@@ -2,6 +2,7 @@ import prisma from '../lib/prisma.js'
 import { makeApiCall } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 import { getDate } from '../utils/dateUtils.js'
+import { getSurface } from '../utils/surfaceUtils.js'
 
 export const updateLeaguesByDate = async (date) => {
 	try {
@@ -34,6 +35,9 @@ export const updateLeaguesByDate = async (date) => {
 
 const upsertLeague = async (leagueInfo, date) => {
 	try {
+		// Generalize the surface type to Hard, Clay, Grass
+		const surfaceType = getSurface(leagueInfo.surface_type)
+
 		await prisma.league.upsert({
 			where: {
 				league_id: leagueInfo.league_id,
@@ -41,7 +45,7 @@ const upsertLeague = async (leagueInfo, date) => {
 			update: {
 				competition_name: leagueInfo.competition_name,
 				city_name: leagueInfo.city_name,
-				surface_type: leagueInfo.surface_type,
+				surface_type: surfaceType,
 				match_type: leagueInfo.match_type,
 				number_of_teams: leagueInfo.number_of_teams,
 				category: leagueInfo.category,
@@ -51,7 +55,7 @@ const upsertLeague = async (leagueInfo, date) => {
 				league_id: leagueInfo.league_id,
 				competition_name: leagueInfo.competition_name,
 				city_name: leagueInfo.city_name,
-				surface_type: leagueInfo.surface_type,
+				surface_type: surfaceType,
 				match_type: leagueInfo.match_type,
 				number_of_teams: leagueInfo.number_of_teams,
 				category: leagueInfo.category,

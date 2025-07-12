@@ -68,7 +68,7 @@ const getPredictionsByMatch = async (match) => {
 			Clay: 1,
 			Grass: 2,
 		}
-		// Hardcourt Indoor and Hardcourt Outdoor are both considered "Hardcourt" so it'll be 0
+		
 		const surfaceType = surfaceMap[match.ground_type] || 0
 
 		// Check if we have complete player data for full model

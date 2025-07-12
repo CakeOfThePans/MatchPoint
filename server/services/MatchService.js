@@ -2,6 +2,7 @@ import prisma from '../lib/prisma.js'
 import { fetchPaginatedData } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 import { getDate } from '../utils/dateUtils.js'
+import { getSurface } from '../utils/surfaceUtils.js'
 
 export const updateMatchesByLeague = async (leagueId, startDate, endDate) => {
 	try {
@@ -47,13 +48,16 @@ export const updateMatchesByLeague = async (leagueId, startDate, endDate) => {
 
 const upsertMatch = async (match) => {
 	try {
+		// Generalize the surface type to Hard, Clay, Grass
+		const surfaceType = getSurface(match.ground_type)
+
 		await prisma.match.upsert({
 			where: {
 				match_id: match.id,
 			},
 			update: {
 				name: match.name,
-				ground_type: match.ground_type,
+				ground_type: surfaceType,
 				status_type: match.status_type,
 				home_team_id: match.home_team_id,
 				home_team_name: match.home_team_name,
@@ -68,7 +72,7 @@ const upsertMatch = async (match) => {
 			create: {
 				match_id: match.id,
 				name: match.name,
-				ground_type: match.ground_type,
+				ground_type: surfaceType,
 				status_type: match.status_type,
 				home_team_id: match.home_team_id,
 				home_team_name: match.home_team_name,
