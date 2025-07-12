@@ -183,6 +183,7 @@ The Node.js backend provides:
 
 - `npm run dev` - Start with nodemon
 - `npm start` - Start production server
+- `npm run test` - Run testing functions
 - `npm run db:generate` - Generate Prisma client
 - `npm run db:push` - Push schema to database
 - `npm run db:migrate` - Run database migrations
@@ -209,9 +210,10 @@ The Python FastAPI service provides:
 **Key Features:**
 
 - Tennis match outcome predictions
-- Two prediction models:
+- Three prediction models depending on the data available:
   - Full-feature model (surface, rankings, points, odds)
   - Odds-only model (surface and betting odds)
+  - Rank-only model (surface, rankings, points)
 
 **API Endpoints:**
 
