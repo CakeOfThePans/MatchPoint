@@ -15,6 +15,11 @@ export const updateOddsByMatch = async (matchId) => {
 			'SPORTDEVS_API_KEY2'
 		)
 
+		if (data.length === 0) {
+			console.log('No odds found for match:', matchId)
+			return false
+		}
+
 		let periods = data[0].periods
 		// We want the odds for the full match
 		let fullMatchOdds = periods.filter(
@@ -37,5 +42,6 @@ export const updateOddsByMatch = async (matchId) => {
 		return true
 	} catch (error) {
 		console.error('Error updating odds by match:', error)
+		return false
 	}
 }

@@ -6,6 +6,7 @@ import {
 	ChevronRight,
 	X,
 	AlertCircle,
+	Info,
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
@@ -33,6 +34,22 @@ export const PredictionsPage = () => {
 		total: 0,
 		pages: 0,
 	})
+
+	const [showInfoModal, setShowInfoModal] = useState(false)
+
+	// Disable body scroll when modal is open
+	useEffect(() => {
+		if (showInfoModal) {
+			document.body.style.overflow = 'hidden'
+		} else {
+			document.body.style.overflow = 'unset'
+		}
+
+		// Cleanup function to restore scroll when component unmounts
+		return () => {
+			document.body.style.overflow = 'unset'
+		}
+	}, [showInfoModal])
 
 	// Fetch matches from API
 	useEffect(() => {
@@ -197,9 +214,18 @@ export const PredictionsPage = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
 					<div>
-						<h1 className="text-3xl font-bold text-gray-900">
-							Match Predictions
-						</h1>
+						<div className="flex items-center gap-3">
+							<h1 className="text-3xl font-bold text-gray-900">
+								Match Predictions
+							</h1>
+							<button
+								onClick={() => setShowInfoModal(true)}
+								className="p-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+								title="Learn more about this page"
+							>
+								<Info className="h-5 w-5" />
+							</button>
+						</div>
 						<p className="mt-1 text-gray-500">
 							View predictions for{' '}
 							{predictionType === 'upcoming' ? 'upcoming' : 'past'} tennis
@@ -208,7 +234,7 @@ export const PredictionsPage = () => {
 					</div>
 					<div className="mt-4 md:mt-0 flex items-center gap-3">
 						{/* Prediction Type Toggle */}
-						<div className="inline-flex bg-gray-100 rounded-md p-1 shadow-sm">
+						<div className="inline-flex bg-gray-100 rounded-md p-1 border border-gray-200 shadow-sm">
 							<button
 								onClick={() => setPredictionType('upcoming')}
 								className={`px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
@@ -393,6 +419,119 @@ export const PredictionsPage = () => {
 					</>
 				)}
 			</div>
+
+			{/* Info Modal */}
+			{showInfoModal && (
+				<div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+					<div className="bg-white border border-gray-200 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+						<div className="p-6">
+							<div className="flex items-center justify-between mb-4">
+								<h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+									<Info className="h-5 w-5 text-green-600" />
+									About Match Predictions
+								</h2>
+								<button
+									onClick={() => setShowInfoModal(false)}
+									className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+								>
+									<X className="h-5 w-5" />
+								</button>
+							</div>
+
+							<div className="space-y-4 text-gray-700">
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">
+										Page Overview
+									</h3>
+									<p>
+										The Match Predictions page displays tennis match predictions
+										using our advanced machine learning model. You can view both
+										upcoming matches with predictions and past matches with
+										actual results.
+									</p>
+								</div>
+
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">
+										Key Features
+									</h3>
+									<ul className="list-disc list-inside space-y-1 ml-4">
+										<li>
+											<strong>Toggle View:</strong> Switch between "Upcoming"
+											and "Past" matches using the toggle buttons
+										</li>
+										<li>
+											<strong>Tournament Filter:</strong> Select specific
+											tournaments to filter matches
+										</li>
+										<li>
+											<strong>Search:</strong> Find matches by player name using
+											the search bar
+										</li>
+										<li>
+											<strong>Pagination:</strong> Navigate through multiple
+											pages of matches
+										</li>
+										<li>
+											<strong>Date Grouping:</strong> Matches are organized by
+											date for easy browsing
+										</li>
+									</ul>
+								</div>
+
+								<div>
+									<h3 className="font-semibold text-gray-900 mb-2">
+										Win Probability & Models
+									</h3>
+									<ul className="list-disc list-inside space-y-1 ml-4">
+										<li>
+											<strong>Win Probability:</strong> Percentage showing each
+											player's predicted chance of winning the match
+										</li>
+										<li>
+											<strong>Model Indicator:</strong> Indicates which model
+											was used to make the prediction
+											<ul className="list-disc list-inside space-y-1 ml-4 mt-1">
+												<li>
+													<strong>M1:</strong> Primary model using all features
+													(surface, ranks, points, odds)
+												</li>
+												<li>
+													<strong>M2:</strong> Secondary model using only odds
+													(less accurate)
+												</li>
+												<li>
+													<strong>M3:</strong> Tertiary model using only ranks
+													and points (less accurate)
+												</li>
+											</ul>
+										</li>
+										<li>
+											<strong>Dynamic Updates:</strong> Win probabilities are
+											updated based on changes in betting odds and market
+											conditions
+										</li>
+										<li>
+											<strong>Model Prioritization:</strong> The system
+											automatically prioritizes higher-tier models (M1 {'>'} M2{' '}
+											{'>'} M3) when available data allows
+										</li>
+									</ul>
+								</div>
+
+								<div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+									<p className="text-blue-800 text-sm">
+										<strong>Note:</strong> Predictions are based on historical
+										data and machine learning algorithms. They should be used
+										for informational purposes only and not as the sole basis
+										for betting decisions.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

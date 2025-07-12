@@ -71,7 +71,7 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 		<div className="relative w-full" ref={dropdownRef}>
 			<button
 				type="button"
-				className="flex items-center justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none cursor-pointer"
+				className="flex items-center justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none cursor-pointer"
 				onClick={() => setIsOpen((open) => !open)}
 				disabled={loading}
 			>

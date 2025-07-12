@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Calendar, Clock, User } from 'lucide-react'
+import { Calendar, Clock, User, Brain } from 'lucide-react'
 
 export const MatchCard = ({ match, isPast = false }) => {
 	const [homeImageError, setHomeImageError] = useState(false)
@@ -52,6 +52,42 @@ export const MatchCard = ({ match, isPast = false }) => {
 		}
 	}
 
+	// Get model indicator styling and tooltip
+	const getModelIndicator = () => {
+		const model = match.prediction_model
+		if (!model) return null
+
+		const modelInfo = {
+			1: {
+				color: 'bg-blue-100 text-blue-700',
+				label: 'Primary Model',
+				desc: 'Full features (surface, ranks, points, odds)',
+			},
+			2: {
+				color: 'bg-purple-100 text-purple-700',
+				label: 'Secondary Model',
+				desc: 'Odds-only (surface, odds), Less accurate',
+			},
+			3: {
+				color: 'bg-orange-100 text-orange-700',
+				label: 'Tertiary Model',
+				desc: 'Rank-only (surface, ranks, points), Less accurate',
+			},
+		}
+
+		const info = modelInfo[model]
+		if (!info) return null
+
+		return (
+			<span
+				className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${info.color}`}
+				title={`${info.label}: ${info.desc}`}
+			>
+				M{model}
+			</span>
+		)
+	}
+
 	return (
 		<div className="bg-white rounded-lg shadow-md overflow-hidden">
 			<div className="bg-green-50 px-4 py-2 border-b border-gray-200">
@@ -92,12 +128,15 @@ export const MatchCard = ({ match, isPast = false }) => {
 							)}
 						</div>
 					</div>
-					<div
-						className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
-							homeTeamProb
-						)}`}
-					>
-						{formatProbability(homeTeamProb)}
+					<div className="flex items-center gap-2">
+						{getModelIndicator()}
+						<div
+							className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
+								homeTeamProb
+							)}`}
+						>
+							{formatProbability(homeTeamProb)}
+						</div>
 					</div>
 				</div>
 				<div className="flex items-center justify-between">
@@ -137,19 +176,20 @@ export const MatchCard = ({ match, isPast = false }) => {
 								{league.surface_type}
 							</span>
 						</p>
-						{match.winner_id && match.winner_prediction_id && ( // If the match has a winner and a prediction, show it
-							<span
-								className={`px-2 py-0.5 rounded-full text-xs font-semibold align-middle ${
-									match.winner_id === match.winner_prediction_id
-										? 'bg-green-100 text-green-700'
-										: 'bg-red-100 text-red-700'
-								}`}
-							>
-								{match.winner_id === match.winner_prediction_id
-									? 'Correct'
-									: 'Incorrect'}
-							</span>
-						)}
+						{match.winner_id &&
+							match.winner_prediction_id && ( // If the match has a winner and a prediction, show it
+								<span
+									className={`px-2 py-0.5 rounded-full text-xs font-semibold align-middle ${
+										match.winner_id === match.winner_prediction_id
+											? 'bg-green-100 text-green-700'
+											: 'bg-red-100 text-red-700'
+									}`}
+								>
+									{match.winner_id === match.winner_prediction_id
+										? 'Correct'
+										: 'Incorrect'}
+								</span>
+							)}
 					</div>
 					{match.winner_id && ( // If the match has a winner, show the winner
 						<p className="text-sm font-medium">

@@ -14,9 +14,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 try:
     model_path = os.path.join(current_dir, "models", "tennis_model.joblib")
     model2_path = os.path.join(current_dir, "models", "tennis_model2.joblib")
+    model3_path = os.path.join(current_dir, "models", "tennis_model3.joblib")
 
     model = joblib.load(model_path)
     model2 = joblib.load(model2_path)
+    model3 = joblib.load(model3_path)
 except Exception as e:
     raise Exception(f"Error loading the model: {str(e)}")
 
@@ -43,6 +45,17 @@ class OddsOnlyMatchInput(BaseModel):
     surface: int  # 0: Hard, 1: Clay, 2: Grass
     p1_b365_odds: float
     p2_b365_odds: float
+
+class RankOnlyMatchInput(BaseModel):
+    """
+    Input data model for rank-only match prediction
+    """
+
+    surface: int  # 0: Hard, 1: Clay, 2: Grass
+    p1_rank: float
+    p2_rank: float
+    p1_points: float
+    p2_points: float
 
 
 class PredictionResponse(BaseModel):
@@ -110,6 +123,35 @@ async def predict_match_odds_only(match_data: OddsOnlyMatchInput):
 
         # Make prediction using model2
         probabilities = model2.predict_proba(features_array)[0]
+
+        return PredictionResponse(
+            player1_win_probability=float(probabilities[0]),
+            player2_win_probability=float(probabilities[1]),
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+
+@app.post("/predict/rank-only", response_model=PredictionResponse)
+async def predict_match_rank_only(match_data: RankOnlyMatchInput):
+    """
+    Predict the outcome of a tennis match using only surface and odds
+    """
+    try:
+        # Create feature array in the correct order
+        features = [
+            match_data.surface,
+            match_data.p1_rank,
+            match_data.p2_rank,
+            match_data.p1_points,
+            match_data.p2_points,
+        ]
+
+        # Reshape features into 2D array (1 sample, 5 features)
+        features_array = np.array(features).reshape(1, -1)
+
+        # Make prediction using model3
+        probabilities = model3.predict_proba(features_array)[0]
 
         return PredictionResponse(
             player1_win_probability=float(probabilities[0]),

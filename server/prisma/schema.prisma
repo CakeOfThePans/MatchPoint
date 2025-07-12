@@ -42,6 +42,7 @@ model Match {
   winner_name               String?
   season_name               String
   league_id                 Int
+  prediction_model          Int?
   winner_prediction_id      Int?
   home_team_prediction_prob Float?
   away_team_prediction_prob Float?
