@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Calendar, Clock, User, Brain } from 'lucide-react'
+import { Calendar, Clock, User, Brain, Info } from 'lucide-react'
+import Tooltip from './Tooltip'
 
 export const MatchCard = ({ match, isPast = false }) => {
 	const [homeImageError, setHomeImageError] = useState(false)
@@ -52,40 +53,27 @@ export const MatchCard = ({ match, isPast = false }) => {
 		}
 	}
 
-	// Get model indicator styling and tooltip
-	const getModelIndicator = () => {
+	// Get model info for tooltip
+	const getModelInfo = () => {
 		const model = match.prediction_model
 		if (!model) return null
 
 		const modelInfo = {
 			1: {
-				color: 'bg-blue-100 text-blue-700',
-				label: 'Primary Model',
-				desc: 'Full features (surface, ranks, points, odds)',
+				label: 'primary',
+				desc: 'surface, ranks, points, odds',
 			},
 			2: {
-				color: 'bg-purple-100 text-purple-700',
-				label: 'Secondary Model',
-				desc: 'Odds-only (surface, odds), Less accurate',
+				label: 'secondary',
+				desc: 'surface, odds',
 			},
 			3: {
-				color: 'bg-orange-100 text-orange-700',
-				label: 'Tertiary Model',
-				desc: 'Rank-only (surface, ranks, points), Less accurate',
+				label: 'tertiary',
+				desc: 'surface, ranks, points',
 			},
 		}
 
-		const info = modelInfo[model]
-		if (!info) return null
-
-		return (
-			<span
-				className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${info.color}`}
-				title={`${info.label}: ${info.desc}`}
-			>
-				M{model}
-			</span>
-		)
+		return modelInfo[model] || null
 	}
 
 	return (
@@ -103,7 +91,16 @@ export const MatchCard = ({ match, isPast = false }) => {
 							<span>{formattedTime}</span>
 						</div>
 					</div>
-					<p className="text-sm text-gray-600 truncate">{match.name}</p>
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-gray-600 truncate">{match.name}</p>
+						{getModelInfo() && (
+							<Tooltip
+								content={`This match was predicted using the ${getModelInfo().label} model, which uses the following features: ${getModelInfo().desc}`}
+							>
+								<Info className="h-4 w-4 text-gray-400 flex-shrink-0" />
+							</Tooltip>
+						)}
+					</div>
 				</div>
 			</div>
 			<div className="p-4">
@@ -128,15 +125,12 @@ export const MatchCard = ({ match, isPast = false }) => {
 							)}
 						</div>
 					</div>
-					<div className="flex items-center gap-2">
-						{getModelIndicator()}
-						<div
-							className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
-								homeTeamProb
-							)}`}
-						>
-							{formatProbability(homeTeamProb)}
-						</div>
+					<div
+						className={`text-center px-3 py-1 rounded-full text-sm font-medium ${getProbabilityColor(
+							homeTeamProb
+						)}`}
+					>
+						{formatProbability(homeTeamProb)}
 					</div>
 				</div>
 				<div className="flex items-center justify-between">

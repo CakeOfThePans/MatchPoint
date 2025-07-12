@@ -489,20 +489,21 @@ export const PredictionsPage = () => {
 											player's predicted chance of winning the match
 										</li>
 										<li>
-											<strong>Model Indicator:</strong> Indicates which model
-											was used to make the prediction
+											<strong>Model Information:</strong> Hover over the info
+											icon next to the match name to see which model was used
+											and its description
 											<ul className="list-disc list-inside space-y-1 ml-4 mt-1">
 												<li>
-													<strong>M1:</strong> Primary model using all features
-													(surface, ranks, points, odds)
+													<strong>Primary Model:</strong> Full features
+													(surface, ranks, points, odds) - Most accurate
 												</li>
 												<li>
-													<strong>M2:</strong> Secondary model using only odds
-													(less accurate)
+													<strong>Secondary Model:</strong> Odds-only (surface,
+													odds)
 												</li>
 												<li>
-													<strong>M3:</strong> Tertiary model using only ranks
-													and points (less accurate)
+													<strong>Tertiary Model:</strong> Rank-only (surface,
+													ranks, points)
 												</li>
 											</ul>
 										</li>
@@ -513,8 +514,8 @@ export const PredictionsPage = () => {
 										</li>
 										<li>
 											<strong>Model Prioritization:</strong> The system
-											automatically prioritizes higher-tier models (M1 {'>'} M2{' '}
-											{'>'} M3) when available data allows
+											automatically prioritizes higher-tier models when
+											available data allows
 										</li>
 									</ul>
 								</div>

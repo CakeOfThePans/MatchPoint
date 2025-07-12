@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const Tooltip = ({ children, content, className = '' }) => {
 	const [isVisible, setIsVisible] = useState(false)
@@ -7,30 +8,35 @@ const Tooltip = ({ children, content, className = '' }) => {
 
 	const handleMouseEnter = (e) => {
 		const rect = e.currentTarget.getBoundingClientRect()
-		const tooltipWidth = 192 // max-w-48 = 12rem = 192px
 		const windowWidth = window.innerWidth
+		const windowHeight = window.innerHeight
 
-		// Calculate initial position (centered)
+		// Estimate tooltip dimensions
+		const estimatedTooltipWidth = Math.min(300, windowWidth - 20)
+		const estimatedTooltipHeight = 80 // Rough estimate for multi-line content
+
+		// Calculate initial position (centered horizontally)
 		let x = rect.left + rect.width / 2
-
-		// Adjust if tooltip would go off the left edge
-		if (x - tooltipWidth / 2 < 10) {
-			x = tooltipWidth / 2 + 10
-		}
-
-		// Adjust if tooltip would go off the right edge
-		if (x + tooltipWidth / 2 > windowWidth - 10) {
-			x = windowWidth - tooltipWidth / 2 - 10
-		}
-
-		// Calculate y position (above the element)
 		let y = rect.top - 10
 		let above = true
 
-		// If tooltip would go off the top, position it below the element instead
-		if (y < 10) {
-			y = rect.bottom + 10
+		// Adjust horizontal position to keep tooltip within viewport
+		// Add extra margin for border and shadow
+		const margin = 15
+		if (x - estimatedTooltipWidth / 2 < margin) {
+			x = estimatedTooltipWidth / 2 + margin
+		}
+		if (x + estimatedTooltipWidth / 2 > windowWidth - margin) {
+			x = windowWidth - estimatedTooltipWidth / 2 - margin
+		}
+
+		// Adjust vertical position
+		if (y - estimatedTooltipHeight < margin) {
+			y = rect.bottom + margin
 			above = false
+		}
+		if (y + estimatedTooltipHeight > windowHeight - margin) {
+			y = windowHeight - estimatedTooltipHeight - margin
 		}
 
 		setPosition({
@@ -45,36 +51,32 @@ const Tooltip = ({ children, content, className = '' }) => {
 		setIsVisible(false)
 	}
 
+	const tooltipContent = isVisible && (
+		<div
+			className="fixed z-50 px-3 py-2 text-xs text-white bg-gray-800 rounded shadow-lg border border-gray-600 normal-case leading-relaxed whitespace-normal"
+			style={{
+				left: `${position.x}px`,
+				top: `${position.y}px`,
+				maxWidth: '300px',
+				width: 'max-content',
+				transform: isAbove
+					? 'translateX(-50%) translateY(-100%)'
+					: 'translateX(-50%)',
+			}}
+		>
+			{content}
+		</div>
+	)
+
 	return (
 		<div className={`relative inline-block ${className}`}>
 			<div
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={handleMouseLeave}
-				className="cursor-help"
 			>
 				{children}
 			</div>
-			{isVisible && (
-				<div
-					className="fixed z-30 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg max-w-48 border border-gray-600 normal-case"
-					style={{
-						left: `${position.x}px`,
-						top: `${position.y}px`,
-						transform: isAbove
-							? 'translateX(-50%) translateY(-100%)'
-							: 'translateX(-50%)',
-					}}
-				>
-					{content}
-					<div
-						className={`absolute left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-transparent ${
-							isAbove
-								? 'top-full border-t-3 border-t-gray-800'
-								: 'bottom-full border-b-3 border-b-gray-800'
-						}`}
-					></div>
-				</div>
-			)}
+			{tooltipContent && createPortal(tooltipContent, document.body)}
 		</div>
 	)
 }
