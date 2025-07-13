@@ -197,6 +197,7 @@ The server includes automated cron jobs that run periodically:
 
 - **Daily updates** - Fetches latest player rankings, leagues, matches, match odds, and predictions
 - **Hourly updates** - Fetches latest match statistics, predictions, and updates ML results
+- **3-Hourly updates** - Updates match odds for upcoming matches within 24 hours (if odds are missing)
 
 ### 🤖 Machine Learning Service (Model)
 
