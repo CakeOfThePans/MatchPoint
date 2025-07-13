@@ -55,6 +55,9 @@ const startCronJobs = () => {
 	cron.schedule('10 */3 * * *', async () => {
 		console.log('Running odds update cron job at:', new Date().toISOString())
 		await runOddsUpdate()
+	}, {
+		scheduled: true,
+		timezone: 'UTC',
 	})
 
 	console.log('Cron jobs initialized successfully')
