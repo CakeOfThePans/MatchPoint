@@ -12,6 +12,7 @@ const prisma = new PrismaClient()
 // Get date range from command line arguments (YYYY-MM-DD)
 const startDate = process.argv[2] || null
 const endDate = process.argv[3] || null
+const leagueId = process.argv[4] || null
 
 async function main() {
 	console.log('Starting match seeding...')
@@ -26,12 +27,23 @@ async function main() {
 
 		let dateRange = getDateRangeFromDates(new Date(startDate), new Date(endDate))
 		
-		// Update leagues for the date range
-		for (let date = new Date(dateRange.start); date <= dateRange.end; date.setDate(date.getDate() + 1)) {
-			await updateLeaguesByDate(date)
+		let leagues = []
+		// Update leagues for the date range if no league id is provided
+		if (!leagueId) {
+			for (let date = new Date(dateRange.start); date <= dateRange.end; date.setDate(date.getDate() + 1)) {
+				await updateLeaguesByDate(date)
+			}
+			leagues = await getLeaguesByDateRange(dateRange.start, dateRange.end)
+			console.log(`Found ${leagues.length} leagues`)
 		}
-		let leagues = await getLeaguesByDateRange(dateRange.start, dateRange.end)
-		console.log(`Found ${leagues.length} leagues`)
+		else {
+			leagues = [await prisma.league.findUnique({
+				where: {
+					league_id: parseInt(leagueId),
+				}
+			})]
+			console.log(`Found ${leagues[0].competition_name}`)
+		}
 
 		// Update matches for each league
 		for (let league of leagues) {
@@ -40,9 +52,10 @@ async function main() {
 		let matches = await getMatchesByDateRange(dateRange.start, dateRange.end)
 
 		// Update odds for each match
-		for (let match of matches) {
-			await updateOddsByMatch(match.match_id)
-		}
+		// You can uncomment this if you want to update the odds for each match assuming the api has it (currently not available)
+		// for (let match of matches) {
+		// 	await updateOddsByMatch(match.match_id)
+		// }
 
 		// Update predictions for each match
 		matches = await getMatchesByDateRange(dateRange.start, dateRange.end) // Get matches again to get the updated matches
