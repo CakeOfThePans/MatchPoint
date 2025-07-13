@@ -1,6 +1,5 @@
 import prisma from '../lib/prisma.js'
 import axios from 'axios'
-import { updateOddsByMatch } from './OddsService.js'
 
 export const updatePredictionsByMatch = async (match) => {
 	try {
@@ -26,28 +25,6 @@ export const updatePredictionsByMatch = async (match) => {
 				'Match is canceled/interrupted/suspended, skipping prediction update'
 			)
 			return false
-		}
-
-		// If the match doesn't have betting odds yet
-		if (!match.home_team_odds || !match.away_team_odds) {
-			console.log('Match does not have betting odds, updating odds')
-			// Try to get the betting odds if we're within 12 hours of the match so we don't waste api calls
-			if (
-				match.start_time > new Date(Date.now() + 12 * 60 * 60 * 1000) ||
-				match.start_time < new Date()
-			) {
-				console.log('Match is too far away, skipping odds update')
-			} else {
-				await updateOddsByMatch(match.match_id)
-				match = await prisma.match.findUnique({
-					// Refresh the match object
-					where: { match_id: match.match_id },
-					include: {
-						home_team: true,
-						away_team: true,
-					},
-				})
-			}
 		}
 
 		let prediction = await getPredictionsByMatch(match)

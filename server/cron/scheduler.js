@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import { runDailyJobs, runHourlyJobs } from './jobFunctions.js'
+import { runDailyJobs, runHourlyJobs, runOddsUpdate } from './jobFunctions.js'
 import prisma from '../lib/prisma.js'
 import { getDate } from '../utils/dateUtils.js'
 
@@ -50,6 +50,12 @@ const startCronJobs = () => {
 			timezone: 'UTC',
 		}
 	)
+
+	// Update odds every 3 hours at 10 minutes past the hour (so it doesn't interfere with other jobs)
+	cron.schedule('10 */3 * * *', async () => {
+		console.log('Running odds update cron job at:', new Date().toISOString())
+		await runOddsUpdate()
+	})
 
 	console.log('Cron jobs initialized successfully')
 }

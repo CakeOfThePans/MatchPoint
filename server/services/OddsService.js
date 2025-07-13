@@ -2,7 +2,7 @@ import prisma from '../lib/prisma.js'
 import { makeApiCall } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 
-export const updateOddsByMatch = async (matchId) => {
+export const updateOddsByMatch = async (matchId, key) => {
 	try {
 		console.log('Updating odds by match:', matchId)
 
@@ -12,7 +12,7 @@ export const updateOddsByMatch = async (matchId) => {
 				match_id: `eq.${matchId}`,
 				is_live: `eq.false`,
 			},
-			'SPORTDEVS_API_KEY2'
+			key || 'SPORTDEVS_API_KEY2'
 		)
 
 		if (data.length === 0) {

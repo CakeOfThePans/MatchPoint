@@ -103,4 +103,14 @@ const runHourlyJobs = async () => {
 	}
 }
 
-export { runDailyJobs, runHourlyJobs }
+// Update odds for matches within 24 hours every 3 hours if the odds are not already updated
+const runOddsUpdate = async () => {
+	let matches = await getMatchesByDateRange(new Date(), new Date(Date.now() + 24 * 60 * 60 * 1000))
+	for (let match of matches) {
+		if (!match.home_team_odds || !match.away_team_odds) {
+			await updateOddsByMatch(match.match_id, 'SPORTDEVS_API_KEY3') // Use a different key to avoid rate limiting with daily jobs
+		}
+	}
+}
+
+export { runDailyJobs, runHourlyJobs, runOddsUpdate }
