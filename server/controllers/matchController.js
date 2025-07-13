@@ -16,7 +16,7 @@ const getAllMatches = async (req, res) => {
 				in: ['finished', 'upcoming', 'live'],
 			}
 			whereClause.start_time = {
-				gt: new Date(new Date().setUTCHours(0, 0, 0, 0)),
+				gt: new Date(new Date().setHours(0, 0, 0, 0)),
 			}
 		}
 
@@ -151,7 +151,7 @@ const getMatchesByLeague = async (req, res) => {
 				in: ['finished', 'upcoming', 'live'],
 			}
 			whereClause.start_time = {
-				gt: new Date(new Date().setUTCHours(0, 0, 0, 0)),
+				gt: new Date(new Date().setHours(0, 0, 0, 0)),
 			}
 		}
 
