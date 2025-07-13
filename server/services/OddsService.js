@@ -25,17 +25,22 @@ export const updateOddsByMatch = async (matchId) => {
 		let fullMatchOdds = periods.filter(
 			(period) => period.period_type === 'Full Time'
 		)
-		let Bet365Odds = fullMatchOdds[0].odds.find(
+		let odds = fullMatchOdds[0].odds.find(
 			(odds) =>
 				odds.bookmaker_name === 'bet365' || odds.bookmaker_name === 'Bet365'
 		)
+
+		// If bet365 odds are not found, use the first odds
+		if (!odds) {
+			odds = fullMatchOdds[0].odds[0]
+		}
 
 		// Update the match with the betting odds
 		await prisma.match.update({
 			where: { match_id: matchId },
 			data: {
-				home_team_odds: Bet365Odds.home,
-				away_team_odds: Bet365Odds.away,
+				home_team_odds: odds.home,
+				away_team_odds: odds.away,
 			},
 		})
 		console.log(`Betting odds for match ${matchId} updated successfully`)
