@@ -37,20 +37,6 @@ export const PredictionsPage = () => {
 
 	const [showInfoModal, setShowInfoModal] = useState(false)
 
-	// Disable body scroll when modal is open
-	useEffect(() => {
-		if (showInfoModal) {
-			document.body.style.overflow = 'hidden'
-		} else {
-			document.body.style.overflow = 'unset'
-		}
-
-		// Cleanup function to restore scroll when component unmounts
-		return () => {
-			document.body.style.overflow = 'unset'
-		}
-	}, [showInfoModal])
-
 	// Fetch matches from API
 	useEffect(() => {
 		const fetchMatches = async () => {
