@@ -3,6 +3,7 @@ import { fetchPaginatedData } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 import { getDate } from '../utils/dateUtils.js'
 import { getSurface } from '../utils/surfaceUtils.js'
+import { addPlayer } from './PlayerService.js'
 
 export const updateMatchesByLeague = async (leagueId, startDate, endDate) => {
 	try {
@@ -30,9 +31,9 @@ export const updateMatchesByLeague = async (leagueId, startDate, endDate) => {
 					},
 				})
 
-				if (!homePlayer || !awayPlayer) {
-					continue
-				}
+				// If the player is not in the database, add them and continue if it didn't add them successfully
+				if (!homePlayer && !(await addPlayer(match.home_team_id))) continue
+				if (!awayPlayer && !(await addPlayer(match.away_team_id))) continue
 
 				await upsertMatch(match)
 			} catch (error) {

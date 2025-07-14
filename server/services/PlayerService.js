@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma.js'
-import { fetchPaginatedData } from '../utils/apiUtils.js'
+import { fetchPaginatedData, makeApiCall } from '../utils/apiUtils.js'
 import { API_CONFIG } from '../config/apiConfig.js'
 
 export const updateATPRankings = async () => {
@@ -60,6 +60,28 @@ const upsertRanking = async (rank) => {
 		)
 	} catch (error) {
 		console.error(`Error storing player ${rank.team_id}:`, error)
+	}
+}
+
+export const addPlayer = async (playerId) => {
+	try {
+		let player = await makeApiCall(API_CONFIG.ENDPOINTS.TEAMS, {
+			id: `eq.${playerId}`
+		})
+
+		if (player.length === 0) {
+			console.log(`Player ${playerId} not found`)
+			return
+		}
+
+		player = player[0]
+
+		await upsertPlayer(player)
+		console.log(`Player ${playerId} added successfully`)
+		return true
+	} catch (error) {
+		console.error(`Error adding player ${playerId}:`, error)
+		return false
 	}
 }
 
