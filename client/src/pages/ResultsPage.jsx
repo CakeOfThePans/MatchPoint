@@ -124,7 +124,7 @@ export const ResultsPage = () => {
 										{surfaceResults.map((surface) => {
 											const getSurfaceColor = (surfaceType) => {
 												switch (surfaceType.toLowerCase()) {
-													case 'hardcourt':
+													case 'hard':
 														return 'bg-blue-500'
 													case 'clay':
 														return 'bg-orange-500'
@@ -221,8 +221,7 @@ export const ResultsPage = () => {
 
 													// Determine color and shade based on surface type and accuracy
 													switch (surfaceType.toLowerCase()) {
-														case 'hardcourt indoor':
-														case 'hardcourt outdoor':
+														case 'hard':
 															if (accuracyNum >= 80) return 'bg-blue-600'
 															if (accuracyNum >= 70) return 'bg-blue-500'
 															if (accuracyNum >= 60) return 'bg-blue-400'
