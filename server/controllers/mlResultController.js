@@ -221,30 +221,34 @@ const getMLResultsBySurface = async (req, res) => {
 			},
 		})
 
-		// Group results by surface type, combining hardcourt variants
-		const surfaceGroups = {}
+		// Group results by surface type
+		const surfaceGroups = {
+			hard: {
+				surface_type: 'hard',
+				correct_predictions: 0,
+				incorrect_predictions: 0,
+				total_predictions: 0,
+				accuracy_percentage: 0,
+			},
+			clay: {
+				surface_type: 'clay',
+				correct_predictions: 0,
+				incorrect_predictions: 0,
+				total_predictions: 0,
+				accuracy_percentage: 0,
+			},
+			grass: {
+				surface_type: 'grass',
+				correct_predictions: 0,
+				incorrect_predictions: 0,
+				total_predictions: 0,
+				accuracy_percentage: 0,
+			},
+		}
 
 		mlResults.forEach((result) => {
 			// Convert surface type to lowercase
 			let surfaceType = result.league.surface_type.toLowerCase()
-
-			// Combine hardcourt indoor and outdoor into just "Hardcourt"
-			if (
-				surfaceType === 'hardcourt indoor' ||
-				surfaceType === 'hardcourt outdoor'
-			) {
-				surfaceType = 'Hardcourt'
-			}
-
-			if (!surfaceGroups[surfaceType]) {
-				surfaceGroups[surfaceType] = {
-					surface_type: surfaceType,
-					correct_predictions: 0,
-					incorrect_predictions: 0,
-					total_predictions: 0,
-					accuracy_percentage: 0,
-				}
-			}
 
 			surfaceGroups[surfaceType].correct_predictions +=
 				result.correct_predictions

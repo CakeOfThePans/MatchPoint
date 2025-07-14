@@ -16,7 +16,8 @@ const getAllMatches = async (req, res) => {
 				in: ['finished', 'upcoming', 'live'],
 			}
 			whereClause.start_time = {
-				gt: new Date(new Date().setHours(0, 0, 0, 0)),
+				// Get matches greater than 6 hours ago
+				gt: new Date(new Date().setHours(new Date().getHours() - 6)),
 			}
 		}
 
