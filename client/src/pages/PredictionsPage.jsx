@@ -223,7 +223,7 @@ export const PredictionsPage = () => {
 						<div className="inline-flex bg-gray-100 rounded-md p-1 border border-gray-200 shadow-sm">
 							<button
 								onClick={() => setPredictionType('upcoming')}
-								className={`px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
+								className={`px-2 xs:px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'upcoming'
 										? 'bg-white text-green-700 shadow-sm'
 										: 'text-gray-500 hover:text-gray-700'
@@ -233,7 +233,7 @@ export const PredictionsPage = () => {
 							</button>
 							<button
 								onClick={() => setPredictionType('past')}
-								className={`px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
+								className={`px-2 xs:px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'past'
 										? 'bg-white text-green-700 shadow-sm'
 										: 'text-gray-500 hover:text-gray-700'

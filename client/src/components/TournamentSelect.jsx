@@ -71,23 +71,26 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 		<div className="relative w-full" ref={dropdownRef}>
 			<button
 				type="button"
-				className="flex items-center justify-between w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none cursor-pointer"
+				className="flex items-center justify-between w-full rounded-md border border-gray-300 shadow-sm px-2 xs:px-4 py-3 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none cursor-pointer"
 				onClick={() => setIsOpen((open) => !open)}
 				disabled={loading}
 			>
 				{loading ? (
 					'Loading tournaments...'
 				) : selectedLeague ? (
-					<span>
-						{selectedLeague.competition_name}{' '}
-						<span className="text-xs text-gray-400">
+					<span className="flex-1 line-clamp-1">
+						{selectedLeague.competition_name}
+						<span className="hidden xs:inline text-xs text-gray-400 ml-1">
 							({selectedLeague.surface_type} • {selectedLeague.category})
 						</span>
 					</span>
 				) : (
-					'All ATP Tournaments'
+					<span className="flex-1 line-clamp-1">
+						<span className="block xs:hidden">Tournaments</span>
+						<span className="hidden xs:block">All ATP Tournaments</span>
+					</span>
 				)}
-				<ChevronDown className="ml-2 h-4 w-4" />
+				<ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
 			</button>
 			{isOpen && (
 				<div className="absolute z-20 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto top-full overscroll-contain">
