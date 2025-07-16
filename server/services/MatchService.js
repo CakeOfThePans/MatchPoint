@@ -52,6 +52,12 @@ const upsertMatch = async (match) => {
 		// Generalize the surface type to Hard, Clay, Grass
 		const surfaceType = getSurface(match.ground_type)
 
+		// Get the specific start time for the match if available
+		let start_time = new Date(match.start_time)
+		if (match.times?.specific_start_time) {
+			start_time = new Date(match.times.specific_start_time)
+		}
+
 		await prisma.match.upsert({
 			where: {
 				match_id: match.id,
@@ -66,7 +72,7 @@ const upsertMatch = async (match) => {
 				away_team_id: match.away_team_id,
 				away_team_name: match.away_team_name,
 				away_team_hash_image: match.away_team_hash_image,
-				start_time: new Date(match.start_time),
+				start_time: start_time,
 				season_name: match.season_name,
 				league_id: match.league_id,
 			},
@@ -81,7 +87,7 @@ const upsertMatch = async (match) => {
 				away_team_id: match.away_team_id,
 				away_team_name: match.away_team_name,
 				away_team_hash_image: match.away_team_hash_image,
-				start_time: new Date(match.start_time),
+				start_time: start_time,
 				season_name: match.season_name,
 				league_id: match.league_id,
 			},
