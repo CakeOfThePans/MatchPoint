@@ -71,8 +71,10 @@ const runDailyJobs = async () => {
 
 const runHourlyJobs = async () => {
 	try {
-		// Get all leagues that were tagged for today/tomorrow
-		let dateRange = getDateRange(new Date(), 2)
+		// Get all leagues that were tagged for yesterday/today/tomorrow
+		// Update yesterday's matches in case they were missed
+		let yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+		let dateRange = getDateRange(yesterday, 3)
 		let leagues = await getLeaguesByDateRange(dateRange.start, dateRange.end)
 
 		// Update matches for each league
@@ -84,7 +86,7 @@ const runHourlyJobs = async () => {
 			)
 		}
 
-		// Get all matches that are happening today/tomorrow
+		// Get all matches that are happening yesterday/today/tomorrow
 		let matches = await getMatchesByDateRange(dateRange.start, dateRange.end)
 		// Update predictions for each match
 		for (let match of matches) {
