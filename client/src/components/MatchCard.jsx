@@ -19,7 +19,13 @@ export const MatchCard = ({ match, isPast = false }) => {
 		month: 'short',
 		year: 'numeric',
 	})
-	const formattedTime = date.toLocaleTimeString('en-US', {
+	// Floor minutes to 5-minute intervals
+	const minutes = date.getMinutes()
+	const flooredMinutes = Math.floor(minutes / 5) * 5
+	const flooredDate = new Date(date)
+	flooredDate.setMinutes(flooredMinutes, 0, 0)
+
+	const formattedTime = flooredDate.toLocaleTimeString('en-US', {
 		hour: '2-digit',
 		minute: '2-digit',
 	})
