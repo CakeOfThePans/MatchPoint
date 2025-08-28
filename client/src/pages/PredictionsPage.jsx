@@ -342,7 +342,8 @@ export const PredictionsPage = () => {
 												? 'No matches found for your search criteria.'
 												: predictionType === 'past'
 												? 'No completed matches available.'
-												: 'No upcoming matches available.'}
+												// : 'No upcoming matches available.'}
+												: 'Unfortunately, the tennis API we relied on has discontinued its free plan, so upcoming match data is no longer available. However, you can still explore our past predictions from when the platform was live.' }
 										</p>
 									</div>
 								)
