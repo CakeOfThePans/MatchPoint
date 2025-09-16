@@ -13,7 +13,7 @@ datasource db {
 model League {
   league_id         Int      @id
   competition_name  String
-  city_name         String
+  city_name         String?
   surface_type      String
   match_type        String
   number_of_teams   Int
