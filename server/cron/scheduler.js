@@ -1,64 +1,33 @@
 import cron from 'node-cron'
-import { runDailyJobs, runHourlyJobs, runOddsUpdate } from './jobFunctions.js'
-import prisma from '../lib/prisma.js'
-import { getDate } from '../utils/dateUtils.js'
-
-// Check if daily jobs have run today
-const hasDailyJobsRunToday = async () => {
-	const lastRunRecord = await prisma.mLResultOverall.findFirst()
-
-	if (!lastRunRecord || !lastRunRecord.last_daily_run) {
-		return false
-	}
-
-	const lastRunDate = new Date(lastRunRecord.last_daily_run)
-
-	// Compare the dates not the time
-	return getDate(lastRunDate) === getDate(new Date())
-}
+import { dailyJobs, hourlyJobs } from './jobFunctions.js'
 
 // Initialize all cron jobs
 const startCronJobs = () => {
 	console.log('Initializing cron jobs...')
 
-	// Daily job - runs at 12:00 AM (midnight) every day
+	// Daily jobs run at 0:30 (12:30 AM) every day in GMT+1
 	cron.schedule(
-		'0 0 * * *',
+		'30 0 * * *',
 		async () => {
-			console.log('Running daily cron jobs at:', new Date().toISOString())
-			await runDailyJobs()
+			console.log('Running daily jobs at 0:30 GMT+1...')
+			await dailyJobs()
 		},
 		{
-			scheduled: true,
-			timezone: 'UTC',
+			timezone: 'Europe/Paris', // GMT+1 (with DST support)
 		}
 	)
 
-	// Hourly job - runs every hour at hh:30
+	// Hourly jobs run at the top of every hour in GMT+1
 	cron.schedule(
-		'30 * * * *',
+		'0 * * * *',
 		async () => {
-			console.log('Running hourly cron jobs at:', new Date().toISOString())
-			// If the daily jobs haven't run today, run them now
-			if (!(await hasDailyJobsRunToday())) {
-				await runDailyJobs()
-			}
-			await runHourlyJobs()
+			console.log('Running hourly jobs...')
+			await hourlyJobs()
 		},
 		{
-			scheduled: true,
-			timezone: 'UTC',
+			timezone: 'Europe/Paris', // GMT+1 (with DST support)
 		}
 	)
-
-	// Update odds every 3 hours at 10 minutes past the hour (so it doesn't interfere with other jobs)
-	cron.schedule('10 */3 * * *', async () => {
-		console.log('Running odds update cron job at:', new Date().toISOString())
-		await runOddsUpdate()
-	}, {
-		scheduled: true,
-		timezone: 'UTC',
-	})
 
 	console.log('Cron jobs initialized successfully')
 }

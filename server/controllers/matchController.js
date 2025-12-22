@@ -9,12 +9,8 @@ const getAllMatches = async (req, res) => {
 		const whereClause = {}
 
 		if (finishedOnly === 'true') {
-			whereClause.status_type = 'finished'
+			whereClause.status_type = 'Completed'
 		} else {
-			// Get matches that are finished, upcoming, or live AND start_time is after UTC midnight today
-			whereClause.status_type = {
-				in: ['finished', 'upcoming', 'live'],
-			}
 			whereClause.start_time = {
 				// Get matches greater than 6 hours ago
 				gt: new Date(new Date().setHours(new Date().getHours() - 6)),
@@ -47,7 +43,7 @@ const getAllMatches = async (req, res) => {
 		const matches = await prisma.match.findMany({
 			where: whereClause,
 			include: {
-				league: true,
+				tournament: true,
 				home_team: true,
 				away_team: true,
 				winner: true,
@@ -98,7 +94,7 @@ const getMatchById = async (req, res) => {
 				match_id: matchId,
 			},
 			include: {
-				league: true,
+				tournament: true,
 				home_team: true,
 				away_team: true,
 				winner: true,
@@ -125,32 +121,28 @@ const getMatchById = async (req, res) => {
 	}
 }
 
-// Get matches by league
-const getMatchesByLeague = async (req, res) => {
+// Get matches by tournament
+const getMatchesByTournament = async (req, res) => {
 	try {
-		const { leagueId } = req.params
+		const { tournamentId } = req.params
 		const { page = 1, limit = 20, finishedOnly, search } = req.query
 		const skip = (parseInt(page) - 1) * parseInt(limit)
 
-		const leagueIdInt = parseInt(leagueId)
-		if (isNaN(leagueIdInt)) {
+		const tournamentIdInt = parseInt(tournamentId)
+		if (isNaN(tournamentIdInt)) {
 			return res.status(400).json({
 				success: false,
-				error: 'Invalid league ID',
+				error: 'Invalid tournament ID',
 			})
 		}
 
 		const whereClause = {
-			league_id: leagueIdInt,
+			tournament_id: tournamentIdInt,
 		}
 
 		if (finishedOnly === 'true') {
-			whereClause.status_type = 'finished'
+			whereClause.status_type = 'Completed'
 		} else {
-			// Get matches that are finished, upcoming, or live AND start_time is after UTC midnight today
-			whereClause.status_type = {
-				in: ['finished', 'upcoming', 'live'],
-			}
 			whereClause.start_time = {
 				// Get matches greater than 6 hours ago
 				gt: new Date(new Date().setHours(new Date().getHours() - 6)),
@@ -183,7 +175,7 @@ const getMatchesByLeague = async (req, res) => {
 		const matches = await prisma.match.findMany({
 			where: whereClause,
 			include: {
-				league: true,
+				tournament: true,
 				home_team: true,
 				away_team: true,
 				winner: true,
@@ -208,12 +200,12 @@ const getMatchesByLeague = async (req, res) => {
 			},
 		})
 	} catch (error) {
-		console.error('Error fetching matches by league:', error)
+		console.error('Error fetching matches by tournament:', error)
 		res.status(500).json({
 			success: false,
-			error: 'Failed to fetch matches by league',
+			error: 'Failed to fetch matches by tournament',
 		})
 	}
 }
 
-export { getAllMatches, getMatchById, getMatchesByLeague }
+export { getAllMatches, getMatchById, getMatchesByTournament }

@@ -21,12 +21,12 @@ app.get('/health', (req, res) => {
 })
 
 // API Routes
-import leagueRoutes from './routes/leagues.js'
+import tournamentRoutes from './routes/tournaments.js'
 import matchRoutes from './routes/matches.js'
 import playerRoutes from './routes/players.js'
 import mlResultRoutes from './routes/mlresults.js'
 
-app.use('/api/leagues', leagueRoutes)
+app.use('/api/tournaments', tournamentRoutes)
 app.use('/api/matches', matchRoutes)
 app.use('/api/players', playerRoutes)
 app.use('/api/mlresults', mlResultRoutes)
@@ -64,5 +64,5 @@ app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
 
 	// Start cron jobs after server is running
-	startCronJobs()
+	// startCronJobs()
 })

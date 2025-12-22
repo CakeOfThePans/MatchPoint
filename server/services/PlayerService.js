@@ -1,128 +1,136 @@
-import prisma from '../lib/prisma.js'
-import { fetchPaginatedData, makeApiCall } from '../utils/apiUtils.js'
-import { API_CONFIG } from '../config/apiConfig.js'
+import { scrapeAtpRankings } from "../webscraper/rankingsScraper.js";
+import prisma from "../lib/prisma.js";
+import { PAGE_LIMIT } from "../webscraper/config.js";
 
-export const updateATPRankings = async () => {
-	try {
-		console.log('Updating ATP rankings...')
+/**
+ * Helper function to find or create a player by name.
+ * Returns the player_id.
+ */
+export const findOrCreatePlayer = async (playerData) => {
+	if (!playerData || !playerData.name) {
+		return null;
+	}
 
-		let atpRankings = await fetchPaginatedData(API_CONFIG.ENDPOINTS.RANKINGS, {
-			type: 'eq.atp',
-			class: 'eq.now',
-		})
+	// Try to find existing player by name
+	let player = await prisma.player.findFirst({
+		where: {
+			name: playerData.name,
+		},
+	});
 
-		// Reset all player rankings to null
-		// This is to ensure that anyone who is no longer in the top 500 will have their rank reset since the API only returns the top 500
-		// And this'll reset the rankings at the end of the year as well
-		await prisma.player.updateMany({
+	// Prepare update data - only include fields that have values
+	const updateData = {};
+	if (playerData.birthdate) updateData.birth_date = playerData.birthdate;
+	if (playerData.height) {
+		const heightNum = parseInt(playerData.height);
+		if (!isNaN(heightNum)) updateData.height = heightNum;
+	}
+	if (playerData.weight) {
+		const weightNum = parseInt(playerData.weight);
+		if (!isNaN(weightNum)) updateData.weight = weightNum;
+	}
+	if (playerData.plays) updateData.plays = playerData.plays;
+	if (playerData.imageUrl) updateData.hash_image = playerData.imageUrl;
+
+	if (player) {
+		// Update player if we have new information
+		if (Object.keys(updateData).length > 0) {
+			player = await prisma.player.update({
+				where: {
+					player_id: player.player_id,
+				},
+				data: updateData,
+			});
+		}
+		return player.player_id;
+	} else {
+		// Create new player
+		const newPlayer = await prisma.player.create({
 			data: {
-				rank: null,
-				points: null,
-				next_win_points: null,
+				name: playerData.name,
+				...updateData,
 			},
-		})
-
-		for (let rank of atpRankings) {
-			await upsertRanking(rank)
-		}
-
-		console.log(`Successfully processed ${atpRankings.length} player rankings`)
-	} catch (error) {
-		console.error('Error updating ATP rankings:', error)
+		});
+		return newPlayer.player_id;
 	}
-}
+};
 
-const upsertRanking = async (rank) => {
-	try {
-		await prisma.player.upsert({
-			where: {
-				player_id: rank.team_id,
-			},
-			update: {
-				team_name: rank.team_name,
-				team_hash_image: rank.team_hash_image,
-				rank: rank.rank,
-				points: rank.points,
-				next_win_points: rank.next_win_points,
-			},
-			create: {
-				player_id: rank.team_id,
-				team_name: rank.team_name,
-				team_hash_image: rank.team_hash_image,
-				rank: rank.rank,
-				points: rank.points,
-				next_win_points: rank.next_win_points,
-			},
-		})
+export const updateRankings = async () => {
+  try {
+    console.log("Updating rankings...");
+    // Clear all rankings
+    await prisma.player.updateMany({
+      data: {
+        rank: null,
+        points: null,
+      },
+    });
 
-		console.log(
-			`Player ${rank.team_id} (${rank.team_name}) - Rank ${rank.rank} stored/updated successfully`
-		)
-	} catch (error) {
-		console.error(`Error storing player ${rank.team_id}:`, error)
-	}
-}
+    console.log("Cleared all player rankings");
 
-export const addPlayer = async (playerId) => {
-	try {
-		let player = await makeApiCall(API_CONFIG.ENDPOINTS.TEAMS, {
-			id: `eq.${playerId}`
-		})
+    // Scrape and update rankings page by page
+    for (let page = 1; page <= PAGE_LIMIT; page++) {
+      console.log(`Scraping rankings page ${page}...`);
 
-		if (player.length === 0) {
-			console.log(`Player ${playerId} not found`)
-			return
-		}
+      // Scrape current page
+      const rankings = await scrapeAtpRankings(page);
 
-		player = player[0]
+      if (!rankings || rankings.length === 0) {
+        console.log(`No rankings found on page ${page}, stopping`);
+        break;
+      }
 
-		await upsertPlayer(player)
-		console.log(`Player ${playerId} added successfully`)
-		return true
-	} catch (error) {
-		console.error(`Error adding player ${playerId}:`, error)
-		return false
-	}
-}
+      // Update each player's ranking
+      for (const ranking of rankings) {
+        if (!ranking.name || !ranking.rank || !ranking.points) continue;
 
-export const seedPlayers = async () => {
-	try {
-		let players = await fetchPaginatedData(API_CONFIG.ENDPOINTS.TEAMS, {
-			class_id: 'eq.415'
-		}, 'SPORTDEVS_API_KEY3')	// This will likely use around 200 API calls so we'll use a different API key to prevent the main API key from being used up
+        try {
+          // Try to find existing player by name
+          const existingPlayer = await prisma.player.findFirst({
+            where: {
+              name: ranking.name,
+            },
+          });
 
-		// Only keep single players (not doubles)
-		players = players.filter((player) => player.type === 1) // 2 is doubles
-		
-		for (let player of players) {
-			await upsertPlayer(player)
-		}
+          if (existingPlayer) {
+            // Update existing player's ranking
+            await prisma.player.update({
+              where: {
+                player_id: existingPlayer.player_id,
+              },
+              data: {
+                rank: ranking.rank,
+                points: ranking.points,
+              },
+            });
+          } else {
+            // Create new player if not found
+            await prisma.player.create({
+              data: {
+                name: ranking.name,
+                rank: ranking.rank,
+                points: ranking.points,
+              },
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error updating ranking for player ${ranking.name}:`,
+            error
+          );
+          // Continue with next player even if one fails
+        }
+      }
 
-		console.log(`Successfully processed ${players.length} players`)
-	} catch (error) {
-		throw error
-	}
-}
+      console.log(`Updated rankings for page ${page} (${rankings.length} players)`);
+      // add a delay of anywhere between 3-7 seconds
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 4000 + 3000));
+    }
 
-const upsertPlayer = async (player) => {
-	try {
-		await prisma.player.upsert({
-			where: {
-				player_id: player.id,
-			},
-			update: {
-				team_name: player.name,
-				team_hash_image: player.hash_image,
-			},
-			create: {
-				player_id: player.id,
-				team_name: player.name,
-				team_hash_image: player.hash_image,
-			},
-		})
+    console.log("Rankings update completed");
+  } catch (error) {
+    console.error("Error in updating rankings:", error);
+    throw error;
+  }
+};
 
-		console.log(`Player ${player.id} (${player.name}) stored/updated successfully`)
-	} catch (error) {
-		throw error
-	}
-}

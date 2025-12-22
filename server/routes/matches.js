@@ -2,7 +2,7 @@ import express from 'express'
 import {
 	getAllMatches,
 	getMatchById,
-	getMatchesByLeague,
+	getMatchesByTournament,
 } from '../controllers/matchController.js'
 
 const router = express.Router()
@@ -13,7 +13,7 @@ router.get('/', getAllMatches)
 // GET /api/matches/:id - Get match by ID
 router.get('/:id', getMatchById)
 
-// GET /api/matches/league/:leagueId - Get matches by league
-router.get('/league/:leagueId', getMatchesByLeague)
+// GET /api/matches/tournament/:tournamentId - Get matches by tournament
+router.get('/tournament/:tournamentId', getMatchesByTournament)
 
 export default router
