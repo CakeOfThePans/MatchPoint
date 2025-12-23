@@ -47,7 +47,8 @@ export const ResultsPage = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<h1 className="text-3xl font-bold text-gray-900 mb-2">Model Results</h1>
 				<p className="text-gray-500 mb-8">
-					Track our prediction model's performance across different surfaces and tournaments
+					Track our prediction model's performance across different surfaces and
+					tournaments
 				</p>
 
 				{/* Loading state */}
@@ -137,7 +138,8 @@ export const ResultsPage = () => {
 												<div key={surface.surface_type}>
 													<div className="flex justify-between mb-1">
 														<span className="text-sm font-medium">
-															{surface.surface_type.charAt(0).toUpperCase() + surface.surface_type.slice(1)}
+															{surface.surface_type.charAt(0).toUpperCase() +
+																surface.surface_type.slice(1)}
 														</span>
 														<span className="text-sm font-medium text-gray-500">
 															{surface.accuracy_percentage}%
@@ -276,10 +278,11 @@ export const ResultsPage = () => {
 									</div>
 									{(() => {
 										// Filter tournaments based on search query
-										const filteredTournaments = tournamentResults.filter((tournamentResult) =>
-											tournamentResult.tournament.tournament_name
-												.toLowerCase()
-												.includes(tournamentSearchQuery.toLowerCase())
+										const filteredTournaments = tournamentResults.filter(
+											(tournamentResult) =>
+												tournamentResult.tournament.tournament_name
+													.toLowerCase()
+													.includes(tournamentSearchQuery.toLowerCase())
 										)
 
 										// Show button only if there are more than 8 filtered results

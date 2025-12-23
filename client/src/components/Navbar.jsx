@@ -84,9 +84,9 @@ const Navbar = () => {
 								</li>
 								<li>
 									<Link
-										to="/players"
+										to="/rankings"
 										className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${isActive(
-											'/players'
+											'/rankings'
 										)}`}
 										onClick={scrollToTop}
 									>
@@ -151,9 +151,9 @@ const Navbar = () => {
 								Results
 							</Link>
 							<Link
-								to="/players"
+								to="/rankings"
 								className={` px-3 py-2 rounded-md text-base font-medium flex items-center ${
-									location.pathname === '/players'
+									location.pathname === '/rankings'
 										? 'bg-green-100 text-green-800'
 										: 'text-gray-700 hover:bg-gray-100'
 								}`}

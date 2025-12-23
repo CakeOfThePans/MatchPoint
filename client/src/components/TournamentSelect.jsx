@@ -54,7 +54,9 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 	)
 
 	const selectedTournament =
-		selectedId != null ? tournaments.find((t) => t.tournament_id === selectedId) : null
+		selectedId != null
+			? tournaments.find((t) => t.tournament_id === selectedId)
+			: null
 
 	const handleSearchChange = (e) => {
 		setSearchTerm(e.target.value)
@@ -67,7 +69,7 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 	}
 
 	return (
-		<div className="relative w-full" ref={dropdownRef}>
+		<div className="relative w-full md:w-[200px]" ref={dropdownRef}>
 			<button
 				type="button"
 				className="flex items-center justify-between w-full rounded-md border border-gray-300 shadow-sm px-2 xs:px-4 py-3 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none cursor-pointer"
@@ -124,10 +126,14 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 									idx === filteredTournaments.length - 1
 										? ''
 										: 'border-b border-gray-100'
-								} ${selectedId === tournament.tournament_id ? 'bg-green-100' : ''}`}
+								} ${
+									selectedId === tournament.tournament_id ? 'bg-green-100' : ''
+								}`}
 								onClick={() => handleSelect(tournament.tournament_id)}
 							>
-								<span className="font-medium">{tournament.tournament_name}</span>
+								<span className="font-medium">
+									{tournament.tournament_name}
+								</span>
 								<span className="text-xs text-gray-500">
 									{tournament.surface_type}
 									{tournament.is_grand_slam && ' • Grand Slam'}

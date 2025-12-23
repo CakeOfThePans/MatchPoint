@@ -8,18 +8,28 @@ import {
 	Info,
 	AlertCircle,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getPlayerRanks } from '../utils/api'
 import Tooltip from '../components/Tooltip'
 
-const PlayersPage = () => {
+const RankingsPage = () => {
 	const navigate = useNavigate()
-	const [searchInput, setSearchInput] = useState('') // Local state for input value
-	const [searchQuery, setSearchQuery] = useState('') // Actual search term sent to API
+	const [searchParams, setSearchParams] = useSearchParams()
+
+	// Initialize state from URL params
+	const [searchInput, setSearchInput] = useState(
+		searchParams.get('query') || ''
+	) // Local state for input value
+	const [searchQuery, setSearchQuery] = useState(
+		searchParams.get('query') || ''
+	) // Actual search term sent to API
 	const [players, setPlayers] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-	const [currentPage, setCurrentPage] = useState(1)
+	const [currentPage, setCurrentPage] = useState(() => {
+		const pageParam = searchParams.get('page')
+		return pageParam ? parseInt(pageParam, 10) : 1
+	})
 	const [imageErrors, setImageErrors] = useState({})
 	const [pagination, setPagination] = useState({
 		page: 1,
@@ -28,8 +38,21 @@ const PlayersPage = () => {
 		pages: 0,
 	})
 
-	// Fetch players from API
+	// Update URL params when searchQuery or currentPage changes
 	useEffect(() => {
+		const params = new URLSearchParams()
+
+		if (searchQuery) {
+			params.set('query', searchQuery)
+		}
+
+		if (currentPage > 1) {
+			params.set('page', currentPage.toString())
+		}
+
+		setSearchParams(params, { replace: true })
+
+		// Fetch players from API
 		const fetchPlayers = async () => {
 			try {
 				setLoading(true)
@@ -61,12 +84,7 @@ const PlayersPage = () => {
 		}
 
 		fetchPlayers()
-	}, [currentPage, searchQuery]) // Re-fetch when page or search query changes
-
-	// Reset to page 1 when search query changes
-	useEffect(() => {
-		setCurrentPage(1)
-	}, [searchQuery])
+	}, [searchQuery, currentPage, setSearchParams])
 
 	// Handle search button click
 	const handleSearch = () => {
@@ -273,8 +291,9 @@ const PlayersPage = () => {
 															<div className="flex-shrink-0 h-6 w-6 sm:h-10 sm:w-10">
 																<div className="h-6 w-6 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
 																	{!player.hash_image ||
-																		player.hash_image === 'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
-																		imageErrors[player.player_id] ? (
+																	player.hash_image ===
+																		'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+																	imageErrors[player.player_id] ? (
 																		<User className="h-3 w-3 sm:h-6 sm:w-6 text-gray-400" />
 																	) : (
 																		<img
@@ -388,4 +407,4 @@ const PlayersPage = () => {
 	)
 }
 
-export default PlayersPage
+export default RankingsPage

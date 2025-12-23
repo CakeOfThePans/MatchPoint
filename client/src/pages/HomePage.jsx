@@ -83,7 +83,7 @@ const HomePage = () => {
 						</p>
 					</Link>
 					<Link
-						to="/players"
+						to="/rankings"
 						className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:bg-gray-50 transition-all duration-200 transform hover:-translate-y-1 group"
 						onClick={scrollToTop}
 					>

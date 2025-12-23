@@ -5,7 +5,8 @@ import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import PredictionsPage from './pages/PredictionsPage'
 import ResultsPage from './pages/ResultsPage'
-import PlayersPage from './pages/PlayersPage'
+import RankingsPage from './pages/RankingsPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
 	return (
@@ -17,7 +18,8 @@ function App() {
 						<Route path="/" element={<HomePage />} />
 						<Route path="/predictions" element={<PredictionsPage />} />
 						<Route path="/results" element={<ResultsPage />} />
-						<Route path="/players" element={<PlayersPage />} />
+						<Route path="/rankings" element={<RankingsPage />} />
+						<Route path="*" element={<NotFoundPage />} />
 					</Routes>
 				</main>
 				<Footer />
