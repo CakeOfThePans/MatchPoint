@@ -11,7 +11,7 @@ import {
 import { useLocation } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
-import { getMatches, getMatchesByLeague } from '../utils/api'
+import { getMatches, getMatchesByTournament } from '../utils/api'
 
 export const PredictionsPage = () => {
 	const location = useLocation()
@@ -49,7 +49,7 @@ export const PredictionsPage = () => {
 				let response
 				if (selectedTournament) {
 					// Get matches for specific tournament
-					response = await getMatchesByLeague(
+					response = await getMatchesByTournament(
 						selectedTournament,
 						finishedOnly,
 						currentPage,

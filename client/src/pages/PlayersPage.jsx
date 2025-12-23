@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import { getPlayerRanks } from '../utils/api'
 import Tooltip from '../components/Tooltip'
 
-const RankingsPage = () => {
+const PlayersPage = () => {
 	const navigate = useNavigate()
 	const [searchInput, setSearchInput] = useState('') // Local state for input value
 	const [searchQuery, setSearchQuery] = useState('') // Actual search term sent to API
@@ -103,20 +103,20 @@ const RankingsPage = () => {
 	const handlePreviousPage = () => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1)
-			window.scrollTo({ top: 0, behavior: 'smooth' })
+			// window.scrollTo({ top: 0, behavior: 'smooth' })
 		}
 	}
 
 	const handleNextPage = () => {
 		if (currentPage < pagination.pages) {
 			setCurrentPage(currentPage + 1)
-			window.scrollTo({ top: 0, behavior: 'smooth' })
+			// window.scrollTo({ top: 0, behavior: 'smooth' })
 		}
 	}
 
 	const handlePageChange = (page) => {
 		setCurrentPage(page)
-		window.scrollTo({ top: 0, behavior: 'smooth' })
+		// window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
 	// Generate page numbers for pagination
@@ -234,9 +234,9 @@ const RankingsPage = () => {
 									<thead className="bg-green-600 text-white">
 										<tr>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="A player's real time ranking based on points earned from results in the current week and points dropped in the current week">
+												<Tooltip content="A player's current ranking based on points earned">
 													<div className="flex items-center gap-1">
-														Live Rank
+														Rank
 														<Info className="h-3 w-3" />
 													</div>
 												</Tooltip>
@@ -252,15 +252,7 @@ const RankingsPage = () => {
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
 												<Tooltip content="A player's real-time points total reflecting points earned and dropped this week.">
 													<div className="flex items-center gap-1">
-														Live Points
-														<Info className="h-3 w-3" />
-													</div>
-												</Tooltip>
-											</th>
-											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="New live points total if the player wins next match.">
-													<div className="flex items-center gap-1">
-														Next Win Points
+														Points
 														<Info className="h-3 w-3" />
 													</div>
 												</Tooltip>
@@ -280,10 +272,14 @@ const RankingsPage = () => {
 														<div className="flex items-center">
 															<div className="flex-shrink-0 h-6 w-6 sm:h-10 sm:w-10">
 																<div className="h-6 w-6 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-																	{!imageErrors[player.player_id] ? (
+																	{!player.hash_image ||
+																		player.hash_image === 'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+																		imageErrors[player.player_id] ? (
+																		<User className="h-3 w-3 sm:h-6 sm:w-6 text-gray-400" />
+																	) : (
 																		<img
-																			src={`https://images.sportdevs.com/${player.team_hash_image}.png`}
-																			alt={player.team_name}
+																			src={player.hash_image}
+																			alt={player.name}
 																			className="h-full w-full object-cover"
 																			onError={() =>
 																				setImageErrors((prev) => ({
@@ -292,19 +288,15 @@ const RankingsPage = () => {
 																				}))
 																			}
 																		/>
-																	) : (
-																		<User className="h-4 w-4 sm:h-6 sm:w-6 text-gray-400" />
 																	)}
 																</div>
 															</div>
 															<div className="ml-1 sm:ml-4 flex-1 min-w-0">
 																<button
-																	onClick={() =>
-																		handlePlayerClick(player.team_name)
-																	}
+																	onClick={() => handlePlayerClick(player.name)}
 																	className="text-xs sm:text-sm font-medium text-gray-900 hover:text-green-600 transition-colors duration-200 cursor-pointer text-left break-words"
 																>
-																	{player.team_name}
+																	{player.name}
 																</button>
 															</div>
 														</div>
@@ -312,11 +304,6 @@ const RankingsPage = () => {
 													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
 														<div className="text-xs sm:text-sm text-gray-900">
 															{player.points || 'N/A'} pts
-														</div>
-													</td>
-													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
-														<div className="text-xs sm:text-sm text-gray-900">
-															{player.next_win_points || 'N/A'} pts
 														</div>
 													</td>
 												</tr>
@@ -401,4 +388,4 @@ const RankingsPage = () => {
 	)
 }
 
-export default RankingsPage
+export default PlayersPage

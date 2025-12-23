@@ -3,13 +3,13 @@ import { CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import {
 	getOverallMLResults,
 	getMLResultsBySurface,
-	getMLResultsByLeague,
+	getMLResultsByTournament,
 } from '../utils/api'
 
 export const ResultsPage = () => {
 	const [overallResults, setOverallResults] = useState(null)
 	const [surfaceResults, setSurfaceResults] = useState([])
-	const [leagueResults, setLeagueResults] = useState([])
+	const [tournamentResults, setTournamentResults] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
 	const [showAllTournaments, setShowAllTournaments] = useState(false)
@@ -22,15 +22,15 @@ export const ResultsPage = () => {
 				setError(null)
 
 				// Fetch all ML results in parallel
-				const [overallData, surfaceData, leagueData] = await Promise.all([
+				const [overallData, surfaceData, tournamentData] = await Promise.all([
 					getOverallMLResults(),
 					getMLResultsBySurface(),
-					getMLResultsByLeague(),
+					getMLResultsByTournament(),
 				])
 
 				setOverallResults(overallData.data)
 				setSurfaceResults(surfaceData.data)
-				setLeagueResults(leagueData.data)
+				setTournamentResults(tournamentData.data)
 			} catch (err) {
 				console.error('Error fetching ML results:', err)
 				setError('Failed to load model results. Please try again later.')
@@ -164,8 +164,8 @@ export const ResultsPage = () => {
 								</div>
 							)}
 
-							{/* League accuracy */}
-							{leagueResults.length > 0 && (
+							{/* Tournament accuracy */}
+							{tournamentResults.length > 0 && (
 								<div className="bg-white rounded-lg shadow-md p-6">
 									<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
 										<h2 className="text-xl font-semibold">
@@ -203,9 +203,9 @@ export const ResultsPage = () => {
 									<div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
 										{(() => {
 											// Filter tournaments based on search query
-											const filteredTournaments = leagueResults.filter(
-												(league) =>
-													league.league.competition_name
+											const filteredTournaments = tournamentResults.filter(
+												(tournamentResult) =>
+													tournamentResult.tournament.tournament_name
 														.toLowerCase()
 														.includes(tournamentSearchQuery.toLowerCase())
 											)
@@ -215,7 +215,7 @@ export const ResultsPage = () => {
 												? filteredTournaments
 												: filteredTournaments.slice(0, 8)
 
-											return displayTournaments.map((league) => {
+											return displayTournaments.map((tournamentResult) => {
 												const getSurfaceColor = (surfaceType, accuracy) => {
 													const accuracyNum = parseFloat(accuracy)
 
@@ -245,29 +245,29 @@ export const ResultsPage = () => {
 												}
 
 												return (
-													<div key={league.league_id}>
+													<div key={tournamentResult.tournament_id}>
 														<div className="flex justify-between mb-1">
 															<span className="text-sm font-medium">
-																{league.league.competition_name}
+																{tournamentResult.tournament.tournament_name}
 															</span>
 															<span className="text-sm font-medium text-gray-500">
-																{league.accuracy_percentage}%
+																{tournamentResult.accuracy_percentage}%
 															</span>
 														</div>
 														<div className="w-full h-2 bg-gray-200 rounded-full">
 															<div
 																className={`h-full rounded-full ${getSurfaceColor(
-																	league.league.surface_type,
-																	league.accuracy_percentage
+																	tournamentResult.tournament.surface_type,
+																	tournamentResult.accuracy_percentage
 																)}`}
 																style={{
-																	width: `${league.accuracy_percentage}%`,
+																	width: `${tournamentResult.accuracy_percentage}%`,
 																}}
 															/>
 														</div>
 														<div className="text-xs text-gray-500 mt-1">
-															{league.correct_predictions} correct,{' '}
-															{league.incorrect_predictions} incorrect
+															{tournamentResult.correct_predictions} correct,{' '}
+															{tournamentResult.incorrect_predictions} incorrect
 														</div>
 													</div>
 												)
@@ -276,8 +276,8 @@ export const ResultsPage = () => {
 									</div>
 									{(() => {
 										// Filter tournaments based on search query
-										const filteredTournaments = leagueResults.filter((league) =>
-											league.league.competition_name
+										const filteredTournaments = tournamentResults.filter((tournamentResult) =>
+											tournamentResult.tournament.tournament_name
 												.toLowerCase()
 												.includes(tournamentSearchQuery.toLowerCase())
 										)

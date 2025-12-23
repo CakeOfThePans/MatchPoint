@@ -27,7 +27,7 @@ const getPlayerRanks = async (req, res) => {
 				// Add search filter if provided
 				search.trim()
 					? {
-							team_name: {
+							name: {
 								contains: search.trim(),
 								mode: 'insensitive', // Case-insensitive search
 							},

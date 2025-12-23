@@ -23,7 +23,7 @@ const getAllMatches = async (req, res) => {
 			whereClause.OR = [
 				{
 					home_team: {
-						team_name: {
+						name: {
 							contains: searchTerm,
 							mode: 'insensitive',
 						},
@@ -31,7 +31,7 @@ const getAllMatches = async (req, res) => {
 				},
 				{
 					away_team: {
-						team_name: {
+						name: {
 							contains: searchTerm,
 							mode: 'insensitive',
 						},
@@ -155,7 +155,7 @@ const getMatchesByTournament = async (req, res) => {
 			whereClause.OR = [
 				{
 					home_team: {
-						team_name: {
+						name: {
 							contains: searchTerm,
 							mode: 'insensitive',
 						},
@@ -163,7 +163,7 @@ const getMatchesByTournament = async (req, res) => {
 				},
 				{
 					away_team: {
-						team_name: {
+						name: {
 							contains: searchTerm,
 							mode: 'insensitive',
 						},

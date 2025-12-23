@@ -44,8 +44,8 @@ export const getMatchById = async (id) => {
 	return api.get(`/matches/${id}`)
 }
 
-export const getMatchesByLeague = async (
-	leagueId,
+export const getMatchesByTournament = async (
+	tournamentId,
 	finishedOnly = false,
 	page = 1,
 	limit = 12,
@@ -62,16 +62,16 @@ export const getMatchesByLeague = async (
 		params.search = search.trim()
 	}
 
-	return api.get(`/matches/league/${leagueId}`, { params })
+	return api.get(`/matches/tournament/${tournamentId}`, { params })
 }
 
-// League API functions
-export const getLeagues = async () => {
-	return api.get('/leagues')
+// Tournament API functions
+export const getTournaments = async () => {
+	return api.get('/tournaments')
 }
 
-export const getLeagueById = async (id) => {
-	return api.get(`/leagues/${id}`)
+export const getTournamentById = async (id) => {
+	return api.get(`/tournaments/${id}`)
 }
 
 // Player API functions
@@ -104,8 +104,8 @@ export const getOverallMLResults = async () => {
 	return api.get('/mlresults/overall')
 }
 
-export const getMLResultsByLeague = async () => {
-	return api.get('/mlresults/leagues')
+export const getMLResultsByTournament = async () => {
+	return api.get('/mlresults/tournaments')
 }
 
 export const getMLResultsByGrandSlam = async () => {

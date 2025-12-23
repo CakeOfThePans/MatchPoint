@@ -1,30 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
-import { getLeagues } from '../utils/api'
+import { getTournaments } from '../utils/api'
 
 const TournamentSelect = ({ selectedId, onSelect }) => {
 	const [isOpen, setIsOpen] = useState(false)
-	const [leagues, setLeagues] = useState([])
+	const [tournaments, setTournaments] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [searchTerm, setSearchTerm] = useState('')
 	const dropdownRef = useRef(null)
 
-	// Fetch leagues from API
+	// Fetch tournaments from API
 	useEffect(() => {
-		const fetchLeagues = async () => {
+		const fetchTournaments = async () => {
 			try {
 				setLoading(true)
-				const response = await getLeagues()
-				setLeagues(response.data || [])
+				const response = await getTournaments()
+				setTournaments(response.data || [])
 			} catch (error) {
-				console.error('Error fetching leagues:', error)
-				setLeagues([])
+				console.error('Error fetching tournaments:', error)
+				setTournaments([])
 			} finally {
 				setLoading(false)
 			}
 		}
 
-		fetchLeagues()
+		fetchTournaments()
 	}, [])
 
 	// Close dropdown on outside click
@@ -44,25 +44,24 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 		}
 	}, [isOpen])
 
-	// Filter leagues based on search term
-	const filteredLeagues = leagues.filter(
-		(league) =>
-			league.competition_name
+	// Filter tournaments based on search term
+	const filteredTournaments = tournaments.filter(
+		(tournament) =>
+			tournament.tournament_name
 				.toLowerCase()
 				.includes(searchTerm.toLowerCase()) ||
-			league.surface_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			league.category.toLowerCase().includes(searchTerm.toLowerCase())
+			tournament.surface_type.toLowerCase().includes(searchTerm.toLowerCase())
 	)
 
-	const selectedLeague =
-		selectedId != null ? leagues.find((l) => l.league_id === selectedId) : null
+	const selectedTournament =
+		selectedId != null ? tournaments.find((t) => t.tournament_id === selectedId) : null
 
 	const handleSearchChange = (e) => {
 		setSearchTerm(e.target.value)
 	}
 
-	const handleSelect = (leagueId) => {
-		onSelect(leagueId)
+	const handleSelect = (tournamentId) => {
+		onSelect(tournamentId)
 		setIsOpen(false)
 		setSearchTerm('') // Clear search when selection is made
 	}
@@ -77,11 +76,11 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 			>
 				{loading ? (
 					'Loading tournaments...'
-				) : selectedLeague ? (
+				) : selectedTournament ? (
 					<span className="flex-1 line-clamp-1">
-						{selectedLeague.competition_name}
+						{selectedTournament.tournament_name}
 						<span className="hidden xs:inline text-xs text-gray-400 ml-1">
-							({selectedLeague.surface_type} • {selectedLeague.category})
+							({selectedTournament.surface_type})
 						</span>
 					</span>
 				) : (
@@ -110,28 +109,28 @@ const TournamentSelect = ({ selectedId, onSelect }) => {
 					</div>
 
 					<div
-						className={`cursor-pointer px-4 py-2 rounded-md font-medium hover:bg-green-50 border-b border-gray-100 text-gray-700 whitespace-nowrap ${
+						className={`cursor-pointer px-4 py-2 rounded-md font-medium hover:bg-green-50 border-b border-gray-100 whitespace-nowrap ${
 							searchTerm.length > 0 ? 'hidden' : ''
 						}`}
 						onClick={() => handleSelect(null)}
 					>
 						All ATP Tournaments
 					</div>
-					{filteredLeagues.length > 0 ? (
-						filteredLeagues.map((league, idx) => (
+					{filteredTournaments.length > 0 ? (
+						filteredTournaments.map((tournament, idx) => (
 							<div
-								key={league.league_id}
+								key={tournament.tournament_id}
 								className={`cursor-pointer px-4 py-2 flex flex-col rounded-md hover:bg-green-50 ${
-									idx === filteredLeagues.length - 1
+									idx === filteredTournaments.length - 1
 										? ''
 										: 'border-b border-gray-100'
-								} ${selectedId === league.league_id ? 'bg-green-100' : ''}`}
-								onClick={() => handleSelect(league.league_id)}
+								} ${selectedId === tournament.tournament_id ? 'bg-green-100' : ''}`}
+								onClick={() => handleSelect(tournament.tournament_id)}
 							>
-								<span className="font-medium">{league.competition_name}</span>
+								<span className="font-medium">{tournament.tournament_name}</span>
 								<span className="text-xs text-gray-500">
-									{league.surface_type} • {league.category}
-									{league.is_grand_slam && ' • Grand Slam'}
+									{tournament.surface_type}
+									{tournament.is_grand_slam && ' • Grand Slam'}
 								</span>
 							</div>
 						))

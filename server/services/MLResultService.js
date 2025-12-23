@@ -79,7 +79,7 @@ export const updateMLResultsByTournament = async (tournamentId) => {
 			})
 		}
 
-		// Get all matches for the league
+		// Get all matches for the tournament
 		let tournamentMatches = await prisma.match.findMany({
 			where: {
 				tournament_id: tournamentId,
@@ -104,7 +104,7 @@ export const updateMLResultsByTournament = async (tournamentId) => {
 			}
 		}
 
-		// Update the ML results for the league
+		// Update the ML results for the tournament
 		await prisma.mLResultByTournament.update({
 			where: { tournament_id: tournamentId },
 			data: {

@@ -5,7 +5,7 @@ import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import PredictionsPage from './pages/PredictionsPage'
 import ResultsPage from './pages/ResultsPage'
-import RankingsPage from './pages/RankingsPage'
+import PlayersPage from './pages/PlayersPage'
 
 function App() {
 	return (
@@ -17,7 +17,7 @@ function App() {
 						<Route path="/" element={<HomePage />} />
 						<Route path="/predictions" element={<PredictionsPage />} />
 						<Route path="/results" element={<ResultsPage />} />
-						<Route path="/players" element={<RankingsPage />} />
+						<Route path="/players" element={<PlayersPage />} />
 					</Routes>
 				</main>
 				<Footer />
