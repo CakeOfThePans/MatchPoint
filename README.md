@@ -188,8 +188,7 @@ The Node.js backend provides:
 - `npm run db:push` - Push schema to database
 - `npm run db:migrate` - Run database migrations
 - `npm run db:seed:players` - Seed player data
-- `npm run db:seed:matches` - Seed match data given a start and end date
-- `npm run update:predictions` - Update predictions given a start and end date
+- `npm run db:seed:matches` - Seed match data given the tournament url
 
 **Cron Jobs:**
 

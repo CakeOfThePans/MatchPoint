@@ -1,21 +1,11 @@
 import { PrismaClient } from '@prisma/client'
-import { seedPlayers } from '../services/PlayerService.js'
-import { updateATPRankings } from '../services/PlayerService.js'
 import 'dotenv/config'
+import { updateRankings } from '../services/playerService.js'
 
 const prisma = new PrismaClient()
 
 async function main() {
-	console.log('Starting player seeding...')
-
-	try {
-		await updateATPRankings()
-		await seedPlayers()
-		console.log('Player seeding completed successfully!')
-	} catch (error) {
-		console.error('Error during player seeding:', error)
-		throw error
-	}
+	await updateRankings()
 }
 
 main()

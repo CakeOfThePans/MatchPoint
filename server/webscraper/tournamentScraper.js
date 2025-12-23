@@ -96,3 +96,66 @@ export async function scrapeAtpTournaments() {
   const tournaments = filterAtpMenOnly(main);
   return tournaments;
 }
+
+function extractTournamentInfo(html) {
+  const $ = cheerio.load(html);
+  let text = $("#center").text().toLowerCase();
+
+  const output = {}
+  // Extract surface type
+  const surfaces = ["hard", "grass", "clay", "indoors"];
+  for (const surface of surfaces) {
+    if (text.includes(surface)) {
+      output.surface = surface;
+    }
+  }
+
+  // Extract tournament name and year
+  text = $("#center h1").first().text().trim();
+
+  // Extract year (4 digits)
+  const yearMatch = text.match(/\b(19|20)\d{2}\b/);
+  output.year = Number(yearMatch[0]);
+
+  // Remove anything in parentheses
+  text = text.replace(/\s*\([^)]*\)\s*/g, "").trim();
+
+  // Remove trailing year
+  text = text.replace(/\s+\d{4}$/, "").trim();
+  output.name = text;
+
+
+  // Extract last match date
+  const resultsTable = $("#center").find("table.result").first();
+
+  // Date/time cell looks like: <td class="first time">21.12.<br>17:10</td>
+  const firstDateCell = resultsTable.find("td.first.time").first().text().trim();
+
+  // Parse date
+  output.last_match_date = parseMatchDate(firstDateCell, output.year);
+  return output;
+}
+
+
+// Converts "DD.MM." to dates + given the year
+function parseMatchDate(cellText, year) {
+  if (!cellText || !year) return new Date(); // If no date is found, return today's date
+
+  // Normalize whitespace
+  const text = cellText.replace(/\s+/g, " ").trim();
+
+  // Match "DD.MM."
+  const m = text.match(/(\d{1,2})\.(\d{1,2})\./);
+  if (!m) return new Date(); // If no date is found, return today's date
+
+  const day = Number(m[1]);
+  const month = Number(m[2]) - 1; // JS months are 0-based
+
+  return new Date(year, month, day);
+  
+}
+
+export async function scrapeTournamentInfo(url) {
+  const html = await fetchHtml(url);
+  return extractTournamentInfo(html);
+}

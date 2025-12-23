@@ -1,4 +1,3 @@
-// scrape-next-matches.js
 import * as cheerio from "cheerio";
 import { CONFIG } from "./config.js";
 
@@ -61,21 +60,27 @@ export async function scrapeNextMatches(url) {
   return nextMatches;
 }
 
-function extractSurfaceType(html) {
+function extractMatchResultsIds(html) {
   const $ = cheerio.load(html);
-  const text = $("#center").text().toLowerCase();
+  const resultsTable = $("#center").find("table.result").first();
+  if (!resultsTable.length) return [];
 
-  const surfaces = ["hard", "grass", "clay", "indoors"];
-  for (const surface of surfaces) {
-    if (text.includes(surface)) {
-      return surface;
-    }
-  }
+  const ids = new Set();
 
-  return null;
+  // Every completed match has exactly one info link
+  resultsTable.find('a[href*="match-detail/?id="]').each((_, a) => {
+    const href = $(a).attr("href");
+    if (!href) return;
+
+    const id = extractIdFromMatchUrl(new URL(href, BASE).toString());
+    if (id) ids.add(id);
+  });
+
+  return [...ids];
 }
 
-export async function scrapeSurfaceType(url) {
+export async function scrapeMatchResultsIds(url) {
   const html = await fetchHtml(url);
-  return extractSurfaceType(html);
+  const matchResultsIds = extractMatchResultsIds(html);
+  return matchResultsIds;
 }

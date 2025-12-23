@@ -1,79 +1,74 @@
 import { PrismaClient } from '@prisma/client'
-import { getDateRangeFromDates } from '../utils/dateUtils.js'
-import { updateLeaguesByDate, getLeaguesByDateRange } from '../services/LeagueService.js'
-import { updateMatchesByLeague, getMatchesByDateRange } from '../services/MatchService.js'
-import { updateOddsByMatch } from '../services/OddsService.js'
-import { updatePredictionsByMatch } from '../services/PredictionService.js'
-import { updateOverallMLResults, updateMLResultsByLeague } from '../services/MLResultService.js'
+import { scrapeMatchResultsIds } from '../webscraper/matchesScraper.js'
+import { scrapeTournamentInfo } from '../webscraper/tournamentScraper.js'
+import { updateMatchAndPlayers } from '../services/matchService.js'
+import { formatCourtType } from '../utils/matchUtils.js'
+import {
+	updateOverallMLResults,
+	updateMLResultsByTournament,
+} from '../services/mlResultService.js'
 import 'dotenv/config'
 
 const prisma = new PrismaClient()
 
-// Get date range from command line arguments (YYYY-MM-DD)
-const startDate = process.argv[2] || null
-const endDate = process.argv[3] || null
-const leagueId = process.argv[4] || null
+const tournamentURL = process.argv[2] || null
 
 async function main() {
-	console.log('Starting match seeding...')
-
-	try {
-		if (startDate && endDate) {
-			console.log(`Seeding matches from ${startDate} to ${endDate}`)
-		} else {
-			console.log('No date range provided, skipping match seeding')
-			return
-		}
-
-		let dateRange = getDateRangeFromDates(new Date(startDate), new Date(endDate))
-		
-		let leagues = []
-		// Update leagues for the date range if no league id is provided
-		if (!leagueId) {
-			for (let date = new Date(dateRange.start); date <= dateRange.end; date.setDate(date.getDate() + 1)) {
-				await updateLeaguesByDate(date)
-			}
-			leagues = await getLeaguesByDateRange(dateRange.start, dateRange.end)
-			console.log(`Found ${leagues.length} leagues`)
-		}
-		else {
-			leagues = [await prisma.league.findUnique({
-				where: {
-					league_id: parseInt(leagueId),
-				}
-			})]
-			console.log(`Found ${leagues[0].competition_name}`)
-		}
-
-		// Update matches for each league
-		for (let league of leagues) {
-			await updateMatchesByLeague(league.league_id, dateRange.start, dateRange.end)
-		}
-		let matches = await getMatchesByDateRange(dateRange.start, dateRange.end)
-
-		// Update odds for each match
-		// You can uncomment this if you want to update the odds for each match assuming the api has it (currently not available)
-		// for (let match of matches) {
-		// 	await updateOddsByMatch(match.match_id)
-		// }
-
-		// Update predictions for each match
-		matches = await getMatchesByDateRange(dateRange.start, dateRange.end) // Get matches again to get the updated matches
-		for (let match of matches) {
-			await updatePredictionsByMatch(match)
-		}
-
-		// Update ML results
-		await updateOverallMLResults()
-		for (let league of leagues) {
-			await updateMLResultsByLeague(league.league_id)
-		}
-
-		console.log('Match seeding completed successfully!')
-	} catch (error) {
-		console.error('Error during match seeding:', error)
-		throw error
+	if (!tournamentURL) {
+		console.error('Tournament URL is required')
+		process.exit(1)
 	}
+
+	// Update tournament info
+	const tournamentInfo = await scrapeTournamentInfo(tournamentURL)
+
+	// Check if tournament exists first to avoid auto-increment issues
+	let tournament = await prisma.tournament.findUnique({
+		where: {
+			tournament_name: tournamentInfo.name,
+		},
+	})
+
+	if (tournament) {
+		// Update existing tournament
+		tournament = await prisma.tournament.update({
+			where: {
+				tournament_id: tournament.tournament_id,
+			},
+			data: {
+				last_updated: tournamentInfo.last_match_date,
+			},
+		})
+	} else {
+		// Create new tournament
+		tournament = await prisma.tournament.create({
+			data: {
+				tournament_name: tournamentInfo.name,
+				surface_type: formatCourtType(tournamentInfo.surface),
+				is_grand_slam: false,
+				last_updated: tournamentInfo.last_match_date,
+			},
+		})
+	}
+	console.log(`Updated tournament: ${tournament.tournament_name}`)
+
+	// Update match results
+	const matchIds = await scrapeMatchResultsIds(tournamentURL)
+	console.log(`Found ${matchIds.length} match results to update`)
+	for (const matchId of matchIds) {
+		await updateMatchAndPlayers(matchId, tournament.tournament_id)
+		// add a delay of anywhere between 3-7 seconds
+		await new Promise((resolve) =>
+			setTimeout(resolve, Math.random() * 4000 + 3000)
+		)
+	}
+	console.log(`Updated ${matchIds.length} match results`)
+
+	// Update ML results
+	await updateOverallMLResults()
+	await updateMLResultsByTournament(tournament.tournament_id)
+	console.log(`Updated ML results`)
+	console.log(`Seed matches completed successfully`)
 }
 
 main()
