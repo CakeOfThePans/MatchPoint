@@ -30,7 +30,7 @@ export const ResultsPage = () => {
 	const [tournamentSearchInput, setTournamentSearchInput] = useState('') // Local state for input value
 	const [tournamentSearchQuery, setTournamentSearchQuery] = useState('') // Actual search term sent to API
 	const [tournamentPage, setTournamentPage] = useState(1)
-	const TOURNAMENTS_PER_PAGE = 6
+	const TOURNAMENTS_PER_PAGE = 10
 
 	// Fetch overall and surface results once on mount
 	useEffect(() => {

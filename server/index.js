@@ -64,5 +64,5 @@ app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
 
 	// Start cron jobs after server is running
-	// startCronJobs() // TODO: Uncomment this when we have a way to run the cron jobs in the background
+	startCronJobs()
 })
