@@ -121,8 +121,20 @@ export const getOverallMLResults = async () => {
 	return api.get('/mlresults/overall')
 }
 
-export const getMLResultsByTournament = async () => {
-	return api.get('/mlresults/tournaments')
+export const getMLResultsByTournament = async (
+	page = 1,
+	limit = 10,
+	search = ''
+) => {
+	const params = {
+		page,
+		limit,
+	}
+	if (search && search.trim()) {
+		params.search = search.trim()
+	}
+
+	return api.get('/mlresults/tournaments', { params })
 }
 
 export const getMLResultsByGrandSlam = async () => {

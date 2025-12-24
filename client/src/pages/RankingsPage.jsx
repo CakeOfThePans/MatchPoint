@@ -226,7 +226,7 @@ const RankingsPage = () => {
 												</Tooltip>
 											</th>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="A player's real-time points total reflecting points earned and dropped this week.">
+												<Tooltip content="A player's real-time points total reflecting points earned.">
 													<div className="flex items-center gap-1">
 														Points
 														<Info className="h-3 w-3" />

@@ -43,7 +43,24 @@ const getOverallMLResults = async (req, res) => {
 // Get all ML results by tournament
 const getAllMLResultsByTournament = async (req, res) => {
 	try {
+		const { page = 1, limit = 10, search } = req.query
+		const skip = (parseInt(page) - 1) * parseInt(limit)
+
+		const whereClause = {}
+
+		// Add search functionality
+		if (search && search.trim()) {
+			const searchTerm = search.trim()
+			whereClause.tournament = {
+				tournament_name: {
+					contains: searchTerm,
+					mode: 'insensitive',
+				},
+			}
+		}
+
 		const mlResults = await prisma.mLResultByTournament.findMany({
+			where: whereClause,
 			include: {
 				tournament: {
 					select: {
@@ -59,7 +76,11 @@ const getAllMLResultsByTournament = async (req, res) => {
 					last_updated: 'desc',
 				},
 			},
+			skip,
+			take: parseInt(limit),
 		})
+
+		const total = await prisma.mLResultByTournament.count({ where: whereClause })
 
 		// Calculate accuracy for each tournament
 		const resultsWithAccuracy = mlResults.map((result) => {
@@ -80,6 +101,12 @@ const getAllMLResultsByTournament = async (req, res) => {
 		res.status(200).json({
 			success: true,
 			data: resultsWithAccuracy,
+			pagination: {
+				page: parseInt(page),
+				limit: parseInt(limit),
+				total,
+				pages: Math.ceil(total / parseInt(limit)),
+			},
 		})
 	} catch (error) {
 		console.error('Error fetching ML results by tournament:', error)

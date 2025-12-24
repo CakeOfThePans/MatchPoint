@@ -1,46 +1,113 @@
 import React, { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import {
+	CheckCircle,
+	XCircle,
+	AlertCircle,
+	ChevronLeft,
+	ChevronRight,
+	Search,
+	X,
+} from 'lucide-react'
 import {
 	getOverallMLResults,
 	getMLResultsBySurface,
 	getMLResultsByTournament,
 } from '../utils/api'
+import { getPageNumbers } from '../utils/paginationHelpers'
 
 export const ResultsPage = () => {
 	const [overallResults, setOverallResults] = useState(null)
 	const [surfaceResults, setSurfaceResults] = useState([])
 	const [tournamentResults, setTournamentResults] = useState([])
+	const [tournamentPagination, setTournamentPagination] = useState({
+		page: 1,
+		limit: 10,
+		total: 0,
+		pages: 0,
+	})
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-	const [showAllTournaments, setShowAllTournaments] = useState(false)
-	const [tournamentSearchQuery, setTournamentSearchQuery] = useState('')
+	const [tournamentSearchInput, setTournamentSearchInput] = useState('') // Local state for input value
+	const [tournamentSearchQuery, setTournamentSearchQuery] = useState('') // Actual search term sent to API
+	const [tournamentPage, setTournamentPage] = useState(1)
+	const TOURNAMENTS_PER_PAGE = 6
 
+	// Fetch overall and surface results once on mount
 	useEffect(() => {
-		const fetchMLResults = async () => {
+		const fetchOverallAndSurface = async () => {
 			try {
-				setLoading(true)
-				setError(null)
-
-				// Fetch all ML results in parallel
-				const [overallData, surfaceData, tournamentData] = await Promise.all([
+				const [overallData, surfaceData] = await Promise.all([
 					getOverallMLResults(),
 					getMLResultsBySurface(),
-					getMLResultsByTournament(),
 				])
 
 				setOverallResults(overallData.data)
 				setSurfaceResults(surfaceData.data)
-				setTournamentResults(tournamentData.data)
 			} catch (err) {
 				console.error('Error fetching ML results:', err)
-				setError('Failed to load model results. Please try again later.')
+			}
+		}
+
+		fetchOverallAndSurface()
+	}, [])
+
+	// Reset to page 1 when search query changes
+	useEffect(() => {
+		setTournamentPage(1)
+	}, [tournamentSearchQuery])
+
+	// Handle search button click
+	const handleTournamentSearch = () => {
+		setTournamentSearchQuery(tournamentSearchInput.trim())
+		setTournamentPage(1) // Reset to page 1 when searching
+	}
+
+	// Handle clear button click
+	const handleTournamentClear = () => {
+		setTournamentSearchInput('')
+		setTournamentSearchQuery('')
+		setTournamentPage(1) // Reset to page 1 when clearing
+	}
+
+	// Handle Enter key press in search input
+	const handleTournamentSearchKeyDown = (e) => {
+		if (e.key === 'Enter') {
+			handleTournamentSearch()
+		}
+	}
+
+	// Fetch tournament results with pagination
+	useEffect(() => {
+		const fetchTournamentResults = async () => {
+			try {
+				setLoading(true)
+				setError(null)
+
+				const tournamentData = await getMLResultsByTournament(
+					tournamentPage,
+					TOURNAMENTS_PER_PAGE,
+					tournamentSearchQuery
+				)
+
+				setTournamentResults(tournamentData.data || [])
+				setTournamentPagination(
+					tournamentData.pagination || {
+						page: tournamentPage,
+						limit: TOURNAMENTS_PER_PAGE,
+						total: 0,
+						pages: 0,
+					}
+				)
+			} catch (err) {
+				console.error('Error fetching tournament results:', err)
+				setError('Failed to load tournament results. Please try again later.')
 			} finally {
 				setLoading(false)
 			}
 		}
 
-		fetchMLResults()
-	}, [])
+		fetchTournamentResults()
+	}, [tournamentPage, tournamentSearchQuery])
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
@@ -174,134 +241,187 @@ export const ResultsPage = () => {
 											Tournament Performance
 										</h2>
 										<div className="mt-2 md:mt-0">
-											<div className="relative">
-												<input
-													type="text"
-													className="pl-8 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-500 w-full md:w-64"
-													placeholder="Search tournaments..."
-													value={tournamentSearchQuery}
-													onChange={(e) =>
-														setTournamentSearchQuery(e.target.value)
-													}
-												/>
-												<div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-													<svg
-														className="h-4 w-4 text-gray-400"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-														/>
-													</svg>
+											<div className="flex gap-3">
+												<div className="relative flex-1 md:flex-none md:w-64">
+													<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+														<Search className="h-5 w-5 text-gray-400" />
+													</div>
+													<input
+														type="text"
+														className="block w-full pl-10 pr-10 sm:text-sm bg-white border border-gray-300 rounded-md py-2 focus:outline-none focus:border-green-500"
+														placeholder="Search tournaments..."
+														value={tournamentSearchInput}
+														onChange={(e) =>
+															setTournamentSearchInput(e.target.value)
+														}
+														onKeyDown={handleTournamentSearchKeyDown}
+													/>
+													{(tournamentSearchInput || tournamentSearchQuery) && (
+														<button
+															onClick={handleTournamentClear}
+															className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+														>
+															<X className="h-5 w-5" />
+														</button>
+													)}
 												</div>
+												<button
+													onClick={handleTournamentSearch}
+													className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none cursor-pointer"
+												>
+													Search
+												</button>
 											</div>
 										</div>
 									</div>
 									<div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-										{(() => {
-											// Filter tournaments based on search query
-											const filteredTournaments = tournamentResults.filter(
-												(tournamentResult) =>
-													tournamentResult.tournament.tournament_name
-														.toLowerCase()
-														.includes(tournamentSearchQuery.toLowerCase())
-											)
+										{tournamentResults.map((tournamentResult) => {
+											const getSurfaceColor = (surfaceType, accuracy) => {
+												const accuracyNum = parseFloat(accuracy)
 
-											// Apply show more/less logic to filtered results
-											const displayTournaments = showAllTournaments
-												? filteredTournaments
-												: filteredTournaments.slice(0, 8)
-
-											return displayTournaments.map((tournamentResult) => {
-												const getSurfaceColor = (surfaceType, accuracy) => {
-													const accuracyNum = parseFloat(accuracy)
-
-													// Determine color and shade based on surface type and accuracy
-													switch (surfaceType.toLowerCase()) {
-														case 'hard':
-															if (accuracyNum >= 80) return 'bg-blue-600'
-															if (accuracyNum >= 70) return 'bg-blue-500'
-															if (accuracyNum >= 60) return 'bg-blue-400'
-															if (accuracyNum >= 50) return 'bg-blue-300'
-															return 'bg-blue-200'
-														case 'clay':
-															if (accuracyNum >= 80) return 'bg-orange-600'
-															if (accuracyNum >= 70) return 'bg-orange-500'
-															if (accuracyNum >= 60) return 'bg-orange-400'
-															if (accuracyNum >= 50) return 'bg-orange-300'
-															return 'bg-orange-200'
-														case 'grass':
-															if (accuracyNum >= 80) return 'bg-green-600'
-															if (accuracyNum >= 70) return 'bg-green-500'
-															if (accuracyNum >= 60) return 'bg-green-400'
-															if (accuracyNum >= 50) return 'bg-green-300'
-															return 'bg-green-200'
-														default:
-															return 'bg-gray-200'
-													}
+												// Determine color and shade based on surface type and accuracy
+												switch (surfaceType.toLowerCase()) {
+													case 'hard':
+														if (accuracyNum >= 80) return 'bg-blue-600'
+														if (accuracyNum >= 70) return 'bg-blue-500'
+														if (accuracyNum >= 60) return 'bg-blue-400'
+														if (accuracyNum >= 50) return 'bg-blue-300'
+														return 'bg-blue-200'
+													case 'clay':
+														if (accuracyNum >= 80) return 'bg-orange-600'
+														if (accuracyNum >= 70) return 'bg-orange-500'
+														if (accuracyNum >= 60) return 'bg-orange-400'
+														if (accuracyNum >= 50) return 'bg-orange-300'
+														return 'bg-orange-200'
+													case 'grass':
+														if (accuracyNum >= 80) return 'bg-green-600'
+														if (accuracyNum >= 70) return 'bg-green-500'
+														if (accuracyNum >= 60) return 'bg-green-400'
+														if (accuracyNum >= 50) return 'bg-green-300'
+														return 'bg-green-200'
+													default:
+														return 'bg-gray-200'
 												}
+											}
 
-												return (
-													<div key={tournamentResult.tournament_id}>
-														<div className="flex justify-between mb-1">
-															<span className="text-sm font-medium">
-																{tournamentResult.tournament.tournament_name}
-															</span>
-															<span className="text-sm font-medium text-gray-500">
-																{tournamentResult.accuracy_percentage}%
-															</span>
-														</div>
-														<div className="w-full h-2 bg-gray-200 rounded-full">
-															<div
-																className={`h-full rounded-full ${getSurfaceColor(
-																	tournamentResult.tournament.surface_type,
-																	tournamentResult.accuracy_percentage
-																)}`}
-																style={{
-																	width: `${tournamentResult.accuracy_percentage}%`,
-																}}
-															/>
-														</div>
-														<div className="text-xs text-gray-500 mt-1">
-															{tournamentResult.correct_predictions} correct,{' '}
-															{tournamentResult.incorrect_predictions} incorrect
-														</div>
+											return (
+												<div key={tournamentResult.tournament_id}>
+													<div className="flex justify-between mb-1">
+														<span className="text-sm font-medium">
+															{tournamentResult.tournament.tournament_name}
+														</span>
+														<span className="text-sm font-medium text-gray-500">
+															{tournamentResult.accuracy_percentage}%
+														</span>
 													</div>
-												)
-											})
-										})()}
+													<div className="w-full h-2 bg-gray-200 rounded-full">
+														<div
+															className={`h-full rounded-full ${getSurfaceColor(
+																tournamentResult.tournament.surface_type,
+																tournamentResult.accuracy_percentage
+															)}`}
+															style={{
+																width: `${tournamentResult.accuracy_percentage}%`,
+															}}
+														/>
+													</div>
+													<div className="text-xs text-gray-500 mt-1">
+														{tournamentResult.correct_predictions} correct,{' '}
+														{tournamentResult.incorrect_predictions} incorrect
+													</div>
+												</div>
+											)
+										})}
 									</div>
 									{(() => {
-										// Filter tournaments based on search query
-										const filteredTournaments = tournamentResults.filter(
-											(tournamentResult) =>
-												tournamentResult.tournament.tournament_name
-													.toLowerCase()
-													.includes(tournamentSearchQuery.toLowerCase())
-										)
+										// Pagination handlers
+										const handlePreviousPage = () => {
+											if (tournamentPage > 1) {
+												setTournamentPage(tournamentPage - 1)
+												window.scrollTo({ top: 0, behavior: 'smooth' })
+											}
+										}
 
-										// Show button only if there are more than 8 filtered results
-										if (filteredTournaments.length > 8) {
+										const handleNextPage = () => {
+											if (tournamentPage < tournamentPagination.pages) {
+												setTournamentPage(tournamentPage + 1)
+												window.scrollTo({ top: 0, behavior: 'smooth' })
+											}
+										}
+
+										const handlePageChange = (page) => {
+											setTournamentPage(page)
+											window.scrollTo({ top: 0, behavior: 'smooth' })
+										}
+
+										if (tournamentPagination.pages > 1) {
 											return (
-												<div className="mt-6 text-center">
-													<button
-														onClick={() =>
-															setShowAllTournaments(!showAllTournaments)
-														}
-														className="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none cursor-pointer transition-colors"
-													>
-														{showAllTournaments
-															? 'Show Less'
-															: `Show More (${
-																	filteredTournaments.length - 8
-															  } more)`}
-													</button>
-												</div>
+												<>
+													{/* Pagination controls */}
+													<div className="mt-6 sm:mt-8 flex justify-center items-center space-x-1 sm:space-x-3">
+														<button
+															onClick={handlePreviousPage}
+															disabled={tournamentPage === 1}
+															className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
+														>
+															<ChevronLeft className="h-3 w-3 sm:h-5 sm:w-5 mr-0.5 sm:mr-2" />
+															<span className="hidden sm:inline">Previous</span>
+															<span className="sm:hidden">Prev</span>
+														</button>
+
+														<div className="flex items-center space-x-0.5 sm:space-x-2">
+															{getPageNumbers(
+																tournamentPage,
+																tournamentPagination.pages
+															).map((page, index) => (
+																<button
+																	key={index}
+																	onClick={() =>
+																		typeof page === 'number'
+																			? handlePageChange(page)
+																			: null
+																	}
+																	disabled={page === '...'}
+																	className={`px-1.5 sm:px-4 py-1 sm:py-2.5 rounded-md text-xs sm:text-base font-medium min-w-[24px] sm:min-w-[44px] ${
+																		page === '...'
+																			? 'text-gray-400 cursor-default'
+																			: tournamentPage === page
+																			? 'bg-green-600 text-white'
+																			: 'text-gray-700 hover:bg-gray-200 cursor-pointer'
+																	}`}
+																>
+																	{page}
+																</button>
+															))}
+														</div>
+
+														<button
+															onClick={handleNextPage}
+															disabled={
+																tournamentPage === tournamentPagination.pages
+															}
+															className="px-1.5 sm:px-4 py-1 sm:py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer text-xs sm:text-base"
+														>
+															<span className="hidden sm:inline">Next</span>
+															<span className="sm:hidden">Next</span>
+															<ChevronRight className="h-3 w-3 sm:h-5 sm:w-5 ml-0.5 sm:ml-2" />
+														</button>
+													</div>
+
+													{/* Pagination info */}
+													{tournamentPagination.total > 0 && (
+														<div className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-gray-600">
+															Showing{' '}
+															{(tournamentPage - 1) * TOURNAMENTS_PER_PAGE + 1}{' '}
+															to{' '}
+															{Math.min(
+																tournamentPage * TOURNAMENTS_PER_PAGE,
+																tournamentPagination.total
+															)}{' '}
+															of {tournamentPagination.total} tournaments
+														</div>
+													)}
+												</>
 											)
 										}
 										return null
