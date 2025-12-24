@@ -208,4 +208,83 @@ const getMatchesByTournament = async (req, res) => {
 	}
 }
 
-export { getAllMatches, getMatchById, getMatchesByTournament }
+// Get matches by player
+const getMatchesByPlayer = async (req, res) => {
+	try {
+		const { playerId } = req.params
+		const { page = 1, limit = 20, finishedOnly } = req.query
+		const skip = (parseInt(page) - 1) * parseInt(limit)
+
+		const playerIdInt = parseInt(playerId)
+		if (isNaN(playerIdInt)) {
+			return res.status(400).json({
+				success: false,
+				error: 'Invalid player ID',
+			})
+		}
+
+		const whereClause = {
+			OR: [
+				{
+					home_team_id: playerIdInt,
+				},
+				{
+					away_team_id: playerIdInt,
+				},
+			],
+		}
+
+		if (finishedOnly === 'true') {
+			whereClause.status_type = 'Completed'
+		} else {
+			whereClause.start_time = {
+				// Get matches greater than 6 hours ago
+				gt: new Date(new Date().setHours(new Date().getHours() - 6)),
+			}
+			whereClause.status_type = {
+				not: 'Completed',
+			}
+		}
+
+		const matches = await prisma.match.findMany({
+			where: whereClause,
+			include: {
+				tournament: true,
+				home_team: true,
+				away_team: true,
+				winner: true,
+			},
+			orderBy: {
+				start_time: finishedOnly === 'true' ? 'desc' : 'asc',
+			},
+			skip,
+			take: parseInt(limit),
+		})
+
+		const total = await prisma.match.count({ where: whereClause })
+
+		res.status(200).json({
+			success: true,
+			data: matches,
+			pagination: {
+				page: parseInt(page),
+				limit: parseInt(limit),
+				total,
+				pages: Math.ceil(total / parseInt(limit)),
+			},
+		})
+	} catch (error) {
+		console.error('Error fetching matches by player:', error)
+		res.status(500).json({
+			success: false,
+			error: 'Failed to fetch matches by player',
+		})
+	}
+}
+
+export {
+	getAllMatches,
+	getMatchById,
+	getMatchesByTournament,
+	getMatchesByPlayer,
+}

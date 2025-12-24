@@ -12,6 +12,8 @@ import { useLocation, useSearchParams } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
 import { getMatches, getMatchesByTournament } from '../utils/api'
+import { groupMatchesByDate } from '../utils/dateHelpers'
+import { getPageNumbers } from '../utils/paginationHelpers'
 
 export const PredictionsPage = () => {
 	const location = useLocation()
@@ -155,31 +157,6 @@ export const PredictionsPage = () => {
 		setCurrentPage(1);
 	};
 
-	// Helper function to group matches by date
-	function groupMatchesByDate(matches) {
-		const grouped = matches.reduce((acc, match) => {
-			const date = new Date(match.start_time)
-			const dateStr = date.toLocaleDateString('en-US', {
-				weekday: 'long',
-				month: 'long',
-				day: 'numeric',
-				year: 'numeric',
-			})
-			const existingGroup = acc.find((group) => group.date === dateStr)
-			if (existingGroup) {
-				existingGroup.matches.push(match)
-			} else {
-				acc.push({
-					date: dateStr,
-					matches: [match],
-				})
-			}
-			return acc
-		}, [])
-
-		return grouped
-	}
-
 	// Pagination handlers
 	const handlePreviousPage = () => {
 		if (currentPage > 1) {
@@ -200,44 +177,6 @@ export const PredictionsPage = () => {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
-	// Generate page numbers for pagination
-	const getPageNumbers = () => {
-		const pages = []
-		const totalPages = pagination.pages
-		const current = currentPage
-
-		if (totalPages <= 7) {
-			// Show all pages if 7 or fewer
-			for (let i = 1; i <= totalPages; i++) {
-				pages.push(i)
-			}
-		} else {
-			// Show first page, last page, current page, and 2 pages around current
-			if (current <= 4) {
-				for (let i = 1; i <= 5; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			} else if (current >= totalPages - 3) {
-				pages.push(1)
-				pages.push('...')
-				for (let i = totalPages - 4; i <= totalPages; i++) {
-					pages.push(i)
-				}
-			} else {
-				pages.push(1)
-				pages.push('...')
-				for (let i = current - 1; i <= current + 1; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			}
-		}
-
-		return pages
-	}
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
@@ -406,7 +345,7 @@ export const PredictionsPage = () => {
 								</button>
 
 								<div className="flex items-center space-x-0.5 sm:space-x-2">
-									{getPageNumbers().map((page, index) => (
+									{getPageNumbers(currentPage, pagination.pages).map((page, index) => (
 										<button
 											key={index}
 											onClick={() =>

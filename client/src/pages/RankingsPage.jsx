@@ -11,6 +11,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getPlayerRanks } from '../utils/api'
 import Tooltip from '../components/Tooltip'
+import { getPageNumbers } from '../utils/paginationHelpers'
 
 const RankingsPage = () => {
 	const navigate = useNavigate()
@@ -107,14 +108,9 @@ const RankingsPage = () => {
 	}
 
 	// Handle player name click
-	const handlePlayerClick = (playerName) => {
+	const handlePlayerClick = (playerId) => {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
-		navigate('/predictions', {
-			state: {
-				searchQuery: playerName,
-				predictionType: 'past',
-			},
-		})
+		navigate(`/player/${playerId}`)
 	}
 
 	// Pagination handlers
@@ -137,44 +133,6 @@ const RankingsPage = () => {
 		// window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
-	// Generate page numbers for pagination
-	const getPageNumbers = () => {
-		const pages = []
-		const totalPages = pagination.pages
-		const current = currentPage
-
-		if (totalPages <= 7) {
-			// Show all pages if 7 or fewer
-			for (let i = 1; i <= totalPages; i++) {
-				pages.push(i)
-			}
-		} else {
-			// Show first page, last page, current page, and 2 pages around current
-			if (current <= 4) {
-				for (let i = 1; i <= 5; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			} else if (current >= totalPages - 3) {
-				pages.push(1)
-				pages.push('...')
-				for (let i = totalPages - 4; i <= totalPages; i++) {
-					pages.push(i)
-				}
-			} else {
-				pages.push(1)
-				pages.push('...')
-				for (let i = current - 1; i <= current + 1; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			}
-		}
-
-		return pages
-	}
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
@@ -260,7 +218,7 @@ const RankingsPage = () => {
 												</Tooltip>
 											</th>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="The full name of the tennis player. Click to view their past match predictions.">
+												<Tooltip content="The full name of the tennis player. Click to view their player profile.">
 													<div className="flex items-center gap-1">
 														Name
 														<Info className="h-3 w-3" />
@@ -312,7 +270,9 @@ const RankingsPage = () => {
 															</div>
 															<div className="ml-1 sm:ml-4 flex-1 min-w-0">
 																<button
-																	onClick={() => handlePlayerClick(player.name)}
+																	onClick={() =>
+																		handlePlayerClick(player.player_id)
+																	}
 																	className="text-xs sm:text-sm font-medium text-gray-900 hover:text-green-600 transition-colors duration-200 cursor-pointer text-left break-words"
 																>
 																	{player.name}
@@ -360,7 +320,7 @@ const RankingsPage = () => {
 								</button>
 
 								<div className="flex items-center space-x-0.5 sm:space-x-2">
-									{getPageNumbers().map((page, index) => (
+									{getPageNumbers(currentPage, pagination.pages).map((page, index) => (
 										<button
 											key={index}
 											onClick={() =>

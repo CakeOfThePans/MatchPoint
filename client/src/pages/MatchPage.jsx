@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import {
 	Calendar,
 	Clock,
@@ -9,6 +9,9 @@ import {
 	TrendingUp,
 } from 'lucide-react'
 import { getMatchById } from '../utils/api'
+import { formatFullDate, formatTime } from '../utils/dateHelpers'
+import { formatOdds } from '../utils/matchHelpers'
+import { formatPlayerDetails } from '../utils/playerHelpers'
 
 const MatchPage = () => {
 	const { id } = useParams()
@@ -66,21 +69,8 @@ const MatchPage = () => {
 		)
 	}
 
-	const date = new Date(match.start_time)
-	const formattedDate = date.toLocaleDateString('en-US', {
-		weekday: 'long',
-		day: 'numeric',
-		month: 'long',
-		year: 'numeric',
-	})
-	const minutes = date.getMinutes()
-	const flooredMinutes = Math.floor(minutes / 5) * 5
-	const flooredDate = new Date(date)
-	flooredDate.setMinutes(flooredMinutes, 0, 0)
-	const formattedTime = flooredDate.toLocaleTimeString('en-US', {
-		hour: '2-digit',
-		minute: '2-digit',
-	})
+	const formattedDate = formatFullDate(match.start_time)
+	const formattedTime = formatTime(match.start_time)
 
 	// Prediction probabilities
 	const homeTeamProb = match.home_team_prediction_prob
@@ -89,60 +79,6 @@ const MatchPage = () => {
 	const awayTeamProb = match.away_team_prediction_prob
 		? match.away_team_prediction_prob * 100
 		: null
-
-	// Format odds
-	const formatOdds = (odds) => {
-		if (!odds) return 'N/A'
-		return odds.toFixed(2)
-	}
-
-	// Format player details - always show all fields, use "-" if not available
-	const formatPlayerDetails = (player) => {
-		const details = []
-
-		// Rank
-		details.push({
-			label: 'Rank',
-			value: player.rank ? `#${player.rank}` : '-',
-		})
-
-		// Points
-		details.push({
-			label: 'Points',
-			value: player.points ? player.points.toLocaleString() : '-',
-		})
-
-		// Age
-		if (player.birth_date) {
-			const birthDate = new Date(player.birth_date)
-			const age = Math.floor(
-				(new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000)
-			)
-			details.push({ label: 'Age', value: age })
-		} else {
-			details.push({ label: 'Age', value: '-' })
-		}
-
-		// Height
-		details.push({
-			label: 'Height',
-			value: player.height ? `${player.height} cm` : '-',
-		})
-
-		// Weight
-		details.push({
-			label: 'Weight',
-			value: player.weight ? `${player.weight} kg` : '-',
-		})
-
-		// Plays
-		details.push({
-			label: 'Plays',
-			value: player.plays || '-',
-		})
-
-		return details
-	}
 
 	const homeDetails = formatPlayerDetails(homeTeam)
 	const awayDetails = formatPlayerDetails(awayTeam)
@@ -185,9 +121,22 @@ const MatchPage = () => {
 									</span>
 								</div>
 								{match.score && (
-									<div className="text-sm text-gray-600">
+									<div className="text-sm text-gray-600 mb-2">
 										<span className="font-medium">Score:</span> {match.score}
 									</div>
+								)}
+								{match.winner_id && match.winner_prediction_id && (
+									<span
+										className={`px-3 py-1 rounded-full text-sm font-semibold ${
+											match.winner_id === match.winner_prediction_id
+												? 'bg-green-100 text-green-700'
+												: 'bg-red-100 text-red-700'
+										}`}
+									>
+										{match.winner_id === match.winner_prediction_id
+											? 'Correct Prediction'
+											: 'Incorrect Prediction'}
+									</span>
 								)}
 							</div>
 						)}
@@ -204,14 +153,20 @@ const MatchPage = () => {
 						<div className="space-y-3">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center">
-									<span className="font-medium text-gray-700">
+									<Link
+										to={`/player/${homeTeam.player_id}`}
+										className="font-medium text-gray-700 hover:text-green-600 transition-colors cursor-pointer"
+									>
 										{homeTeam.name}
-									</span>
+									</Link>
 								</div>
 								<div className="flex items-center">
-									<span className="ml-2 font-medium text-gray-700">
+									<Link
+										to={`/player/${awayTeam.player_id}`}
+										className="ml-2 font-medium text-gray-700 hover:text-green-600 transition-colors cursor-pointer"
+									>
 										{awayTeam.name}
-									</span>
+									</Link>
 								</div>
 							</div>
 
@@ -271,9 +226,12 @@ const MatchPage = () => {
 									/>
 								)}
 							</div>
-							<h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center">
+							<Link
+								to={`/player/${homeTeam.player_id}`}
+								className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center hover:text-green-600 transition-colors cursor-pointer block"
+							>
 								{homeTeam.name}
-							</h3>
+							</Link>
 						</div>
 
 						{/* VS Divider */}
@@ -300,9 +258,12 @@ const MatchPage = () => {
 									/>
 								)}
 							</div>
-							<h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center">
+							<Link
+								to={`/player/${awayTeam.player_id}`}
+								className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center hover:text-green-600 transition-colors cursor-pointer block"
+							>
 								{awayTeam.name}
-							</h3>
+							</Link>
 						</div>
 					</div>
 
@@ -348,7 +309,7 @@ const MatchPage = () => {
 										<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center w-1/3 rounded-bl-lg">
 											{match.home_team_odds ? (
 												<span className="text-sm text-gray-600">
-													{formatOdds(match.home_team_odds)}
+													{formatOdds(match.home_team_odds, 'N/A')}
 												</span>
 											) : (
 												'-'
@@ -360,7 +321,7 @@ const MatchPage = () => {
 										<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center w-1/3 rounded-br-lg">
 											{match.away_team_odds ? (
 												<span className="text-sm text-gray-600">
-													{formatOdds(match.away_team_odds)}
+													{formatOdds(match.away_team_odds, 'N/A')}
 												</span>
 											) : (
 												'-'

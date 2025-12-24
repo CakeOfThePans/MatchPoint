@@ -65,6 +65,23 @@ export const getMatchesByTournament = async (
 	return api.get(`/matches/tournament/${tournamentId}`, { params })
 }
 
+export const getMatchesByPlayer = async (
+	playerId,
+	finishedOnly = false,
+	page = 1,
+	limit = 20
+) => {
+	const params = {
+		page,
+		limit,
+	}
+	if (finishedOnly) {
+		params.finishedOnly = 'true'
+	}
+
+	return api.get(`/matches/player/${playerId}`, { params })
+}
+
 // Tournament API functions
 export const getTournaments = async () => {
 	return api.get('/tournaments')

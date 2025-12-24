@@ -2,6 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, User, Info } from 'lucide-react'
 import Tooltip from './Tooltip'
+import { formatDate, formatTime } from '../utils/dateHelpers'
+import {
+	formatProbability,
+	getProbabilityColor,
+} from '../utils/probabilityHelpers'
+import { getModelInfo } from '../utils/matchHelpers'
 
 export const MatchCard = ({ match, isPast = false }) => {
 	const navigate = useNavigate()
@@ -15,74 +21,19 @@ export const MatchCard = ({ match, isPast = false }) => {
 
 	if (!homeTeam || !awayTeam || !tournament) return null
 
-	const date = new Date(match.start_time)
-	const formattedDate = date.toLocaleDateString('en-US', {
+	const formattedDate = formatDate(match.start_time, {
 		day: 'numeric',
 		month: 'short',
 		year: 'numeric',
 	})
-	// Floor minutes to 5-minute intervals
-	const minutes = date.getMinutes()
-	const flooredMinutes = Math.floor(minutes / 5) * 5
-	const flooredDate = new Date(date)
-	flooredDate.setMinutes(flooredMinutes, 0, 0)
-
-	const formattedTime = flooredDate.toLocaleTimeString('en-US', {
-		hour: '2-digit',
-		minute: '2-digit',
-	})
+	const formattedTime = formatTime(match.start_time)
 
 	// Calculate prediction percentages if available
 	const homeTeamProb = match.home_team_prediction_prob
 	const awayTeamProb = match.away_team_prediction_prob
 
-	// Format probability display
-	const formatProbability = (prob) => {
-		if (prob === null || prob === undefined) {
-			return '?%'
-		}
-		return `${(prob * 100).toFixed(1)}%`
-	}
-
-	// Get probability color based on percentage
-	const getProbabilityColor = (prob) => {
-		if (prob === null || prob === undefined) {
-			return 'bg-gray-100 text-gray-700'
-		}
-		const percentage = prob * 100
-		if (percentage >= 70) {
-			return 'bg-green-100 text-green-800'
-		} else if (percentage >= 50) {
-			return 'bg-yellow-100 text-yellow-800'
-		} else if (percentage >= 30) {
-			return 'bg-orange-100 text-orange-800'
-		} else {
-			return 'bg-red-100 text-red-800'
-		}
-	}
-
 	// Get model info for tooltip
-	const getModelInfo = () => {
-		const model = match.prediction_model
-		if (!model) return null
-
-		const modelInfo = {
-			1: {
-				label: 'primary',
-				desc: 'surface, ranks, points, odds',
-			},
-			2: {
-				label: 'secondary',
-				desc: 'surface, odds',
-			},
-			3: {
-				label: 'tertiary',
-				desc: 'surface, ranks, points',
-			},
-		}
-
-		return modelInfo[model] || null
-	}
+	const modelInfo = getModelInfo(match)
 
 	const handleCardClick = () => {
 		navigate(`/match/${match.match_id}`)
@@ -108,13 +59,9 @@ export const MatchCard = ({ match, isPast = false }) => {
 					</div>
 					<div className="flex items-center justify-between">
 						<p className="text-sm text-gray-600 truncate">{match.name}</p>
-						{getModelInfo() && (
+						{modelInfo && (
 							<Tooltip
-								content={`This match was predicted using the ${
-									getModelInfo().label
-								} model, which uses the following features: ${
-									getModelInfo().desc
-								}`}
+								content={`This match was predicted using the ${modelInfo.label} model, which uses the following features: ${modelInfo.desc}`}
 							>
 								<Info className="h-4 w-4 text-gray-400 flex-shrink-0" />
 							</Tooltip>

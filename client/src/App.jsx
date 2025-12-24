@@ -8,6 +8,7 @@ import PredictionsPage from './pages/PredictionsPage'
 import ResultsPage from './pages/ResultsPage'
 import RankingsPage from './pages/RankingsPage'
 import MatchPage from './pages/MatchPage'
+import PlayerPage from './pages/PlayerPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
 						<Route path="/results" element={<ResultsPage />} />
 						<Route path="/rankings" element={<RankingsPage />} />
 						<Route path="/match/:id" element={<MatchPage />} />
+						<Route path="/player/:id" element={<PlayerPage />} />
 						<Route path="*" element={<NotFoundPage />} />
 					</Routes>
 				</main>
