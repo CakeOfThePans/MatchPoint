@@ -10,26 +10,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model League {
-  league_id         Int      @id
-  competition_name  String
-  city_name         String?
+model Tournament {
+  tournament_id     Int      @id @default(autoincrement())
+  tournament_name   String   @unique
   surface_type      String
-  match_type        String
-  number_of_teams   Int
-  category          String
   is_grand_slam     Boolean  @default(false)
-  last_checked      DateTime
+  last_updated      DateTime 
 
   // Relations
   matches           Match[]
-  ml_results        MLResultByLeague[]
+  ml_results        MLResultByTournament[]
 }
 
 model Match {
   match_id                  Int      @id
   name                      String
-  ground_type               String
+  surface_type              String
   status_type               String
   home_team_id              Int
   home_team_name            String
@@ -38,10 +34,10 @@ model Match {
   away_team_name            String
   away_team_hash_image      String
   start_time                DateTime
+  score                     String?
   winner_id                 Int?
   winner_name               String?
-  season_name               String
-  league_id                 Int
+  tournament_id             Int
   prediction_model          Int?
   winner_prediction_id      Int?
   home_team_prediction_prob Float?
@@ -50,20 +46,23 @@ model Match {
   away_team_odds            Float?
 
   // Relations
-  league                    League   @relation(fields: [league_id], references: [league_id])
-  home_team                 Player   @relation("HomeTeamMatches", fields: [home_team_id], references: [player_id])
-  away_team                 Player   @relation("AwayTeamMatches", fields: [away_team_id], references: [player_id])
-  winner                    Player?  @relation("WinnerMatches", fields: [winner_id], references: [player_id])
+  tournament                Tournament  @relation(fields: [tournament_id], references: [tournament_id])
+  home_team                 Player      @relation("HomeTeamMatches", fields: [home_team_id], references: [player_id])
+  away_team                 Player      @relation("AwayTeamMatches", fields: [away_team_id], references: [player_id])
+  winner                    Player?     @relation("WinnerMatches", fields: [winner_id], references: [player_id])
 }
 
 
 model Player {
-  player_id         Int      @id
-  team_name         String
-  team_hash_image   String
+  player_id         Int      @id @default(autoincrement())
+  name              String
+  hash_image        String?
+  birth_date        DateTime?
+  height            Int?
+  weight            Int?
+  plays             String?
   rank              Int?
   points            Int?
-  next_win_points   Int?
 
   // Relations
   home_matches      Match[]  @relation("HomeTeamMatches")
@@ -75,15 +74,14 @@ model MLResultOverall {
   id Int @id @default(1)
   correct_predictions Int
   incorrect_predictions Int
-  last_daily_run DateTime?
 }
 
-model MLResultByLeague {
+model MLResultByTournament {
   id Int @id @default(autoincrement())
-  league_id Int @unique
+  tournament_id Int @unique
   correct_predictions Int
   incorrect_predictions Int
 
   // Relations  
-  league League @relation(fields: [league_id], references: [league_id])
+  tournament Tournament @relation(fields: [tournament_id], references: [tournament_id])
 }

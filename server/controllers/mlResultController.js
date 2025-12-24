@@ -40,28 +40,49 @@ const getOverallMLResults = async (req, res) => {
 	}
 }
 
-// Get all ML results by league
-const getAllMLResultsByLeague = async (req, res) => {
+// Get all ML results by tournament
+const getAllMLResultsByTournament = async (req, res) => {
 	try {
-		const mlResults = await prisma.mLResultByLeague.findMany({
+		const { page = 1, limit = 10, search } = req.query
+		const skip = (parseInt(page) - 1) * parseInt(limit)
+
+		const whereClause = {}
+
+		// Add search functionality
+		if (search && search.trim()) {
+			const searchTerm = search.trim()
+			whereClause.tournament = {
+				tournament_name: {
+					contains: searchTerm,
+					mode: 'insensitive',
+				},
+			}
+		}
+
+		const mlResults = await prisma.mLResultByTournament.findMany({
+			where: whereClause,
 			include: {
-				league: {
+				tournament: {
 					select: {
-						league_id: true,
-						competition_name: true,
-						city_name: true,
+						tournament_id: true,
+						tournament_name: true,
+						is_grand_slam: true,
 						surface_type: true,
 					},
 				},
 			},
 			orderBy: {
-				league: {
-					last_checked: 'desc',
+				tournament: {
+					last_updated: 'desc',
 				},
 			},
+			skip,
+			take: parseInt(limit),
 		})
 
-		// Calculate accuracy for each league
+		const total = await prisma.mLResultByTournament.count({ where: whereClause })
+
+		// Calculate accuracy for each tournament
 		const resultsWithAccuracy = mlResults.map((result) => {
 			const totalPredictions =
 				result.correct_predictions + result.incorrect_predictions
@@ -80,39 +101,45 @@ const getAllMLResultsByLeague = async (req, res) => {
 		res.status(200).json({
 			success: true,
 			data: resultsWithAccuracy,
+			pagination: {
+				page: parseInt(page),
+				limit: parseInt(limit),
+				total,
+				pages: Math.ceil(total / parseInt(limit)),
+			},
 		})
 	} catch (error) {
-		console.error('Error fetching ML results by league:', error)
+		console.error('Error fetching ML results by tournament:', error)
 		res.status(500).json({
 			success: false,
-			error: 'Failed to fetch ML results by league',
+			error: 'Failed to fetch ML results by tournament',
 		})
 	}
 }
 
-// Get ML results by specific league
-const getMLResultsByLeagueId = async (req, res) => {
+// Get ML results by specific tournament
+const getMLResultsByTournamentId = async (req, res) => {
 	try {
-		const { leagueId } = req.params
-		const leagueIdInt = parseInt(leagueId)
+		const { tournamentId } = req.params
+		const tournamentIdInt = parseInt(tournamentId)
 
-		if (isNaN(leagueIdInt)) {
+		if (isNaN(tournamentIdInt)) {
 			return res.status(400).json({
 				success: false,
-				error: 'Invalid league ID',
+				error: 'Invalid tournament ID',
 			})
 		}
 
-		const mlResult = await prisma.mLResultByLeague.findUnique({
+		const mlResult = await prisma.mLResultByTournament.findUnique({
 			where: {
-				league_id: leagueIdInt,
+				tournament_id: tournamentIdInt,
 			},
 			include: {
-				league: {
+				tournament: {
 					select: {
-						league_id: true,
-						competition_name: true,
-						city_name: true,
+						tournament_id: true,
+						tournament_name: true,
+						is_grand_slam: true,
 						surface_type: true,
 					},
 				},
@@ -122,7 +149,7 @@ const getMLResultsByLeagueId = async (req, res) => {
 		if (!mlResult) {
 			return res.status(404).json({
 				success: false,
-				error: 'ML results for this league not found',
+				error: 'ML results for this tournament not found',
 			})
 		}
 
@@ -142,10 +169,10 @@ const getMLResultsByLeagueId = async (req, res) => {
 			},
 		})
 	} catch (error) {
-		console.error('Error fetching ML results by league ID:', error)
+		console.error('Error fetching ML results by tournament ID:', error)
 		res.status(500).json({
 			success: false,
-			error: 'Failed to fetch ML results by league ID',
+			error: 'Failed to fetch ML results by tournament ID',
 		})
 	}
 }
@@ -153,25 +180,25 @@ const getMLResultsByLeagueId = async (req, res) => {
 // Get ML results for Grand Slam tournaments only
 const getMLResultsByGrandSlam = async (req, res) => {
 	try {
-		const mlResults = await prisma.mLResultByLeague.findMany({
+		const mlResults = await prisma.mLResultByTournament.findMany({
 			where: {
-				league: {
+				tournament: {
 					is_grand_slam: true,
 				},
 			},
 			include: {
-				league: {
+				tournament: {
 					select: {
-						league_id: true,
-						competition_name: true,
-						city_name: true,
+						tournament_id: true,
+						tournament_name: true,
+						is_grand_slam: true,
 						surface_type: true,
 					},
 				},
 			},
 			orderBy: {
-				league: {
-					competition_name: 'asc',
+				tournament: {
+					last_updated: 'desc',
 				},
 			},
 		})
@@ -208,13 +235,13 @@ const getMLResultsByGrandSlam = async (req, res) => {
 // Get ML results grouped by surface type
 const getMLResultsBySurface = async (req, res) => {
 	try {
-		const mlResults = await prisma.mLResultByLeague.findMany({
+		const mlResults = await prisma.mLResultByTournament.findMany({
 			include: {
-				league: {
+				tournament: {
 					select: {
-						league_id: true,
-						competition_name: true,
-						city_name: true,
+						tournament_id: true,
+						tournament_name: true,
+						is_grand_slam: true,
 						surface_type: true,
 					},
 				},
@@ -248,7 +275,7 @@ const getMLResultsBySurface = async (req, res) => {
 
 		mlResults.forEach((result) => {
 			// Convert surface type to lowercase
-			let surfaceType = result.league.surface_type.toLowerCase()
+			let surfaceType = result.tournament.surface_type.toLowerCase()
 
 			surfaceGroups[surfaceType].correct_predictions +=
 				result.correct_predictions
@@ -287,8 +314,8 @@ const getMLResultsBySurface = async (req, res) => {
 
 export {
 	getOverallMLResults,
-	getAllMLResultsByLeague,
-	getMLResultsByLeagueId,
+	getAllMLResultsByTournament,
+	getMLResultsByTournamentId,
 	getMLResultsByGrandSlam,
 	getMLResultsBySurface,
 }

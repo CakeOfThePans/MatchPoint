@@ -8,25 +8,37 @@ import {
 	AlertCircle,
 	Info,
 } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import MatchCard from '../components/MatchCard'
 import TournamentSelect from '../components/TournamentSelect'
-import { getMatches, getMatchesByLeague } from '../utils/api'
+import { getMatches, getMatchesByTournament } from '../utils/api'
+import { groupMatchesByDate } from '../utils/dateHelpers'
+import { getPageNumbers } from '../utils/paginationHelpers'
 
 export const PredictionsPage = () => {
 	const location = useLocation()
+	const [searchParams, setSearchParams] = useSearchParams()
 
-	// Initialize state with navigation values
-	const initialSearchQuery = location.state?.searchQuery || ''
-	const initialPredictionType = location.state?.predictionType || 'upcoming'
+	// Initialize state with URL params (takes precedence) or navigation values
+	const urlQuery = searchParams.get('query') || ''
+	const urlPage = searchParams.get('page')
+	const urlType = searchParams.get('type')
+	const urlTournament = searchParams.get('tournament')
+	const initialSearchQuery = urlQuery || location.state?.searchQuery || ''
+	const initialPredictionType =
+		urlType || location.state?.predictionType || 'upcoming'
 
-	const [selectedTournament, setSelectedTournament] = useState(null)
+	const [selectedTournament, setSelectedTournament] = useState(() => {
+		return urlTournament ? parseInt(urlTournament, 10) : null
+	})
 	const [searchInput, setSearchInput] = useState(initialSearchQuery) // Local state for input value
 	const [searchQuery, setSearchQuery] = useState(initialSearchQuery) // Actual search term sent to API
 	const [matches, setMatches] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-	const [currentPage, setCurrentPage] = useState(1)
+	const [currentPage, setCurrentPage] = useState(() => {
+		return urlPage ? parseInt(urlPage, 10) : 1
+	})
 	const [predictionType, setPredictionType] = useState(initialPredictionType) // 'upcoming' or 'past'
 	const [pagination, setPagination] = useState({
 		page: 1,
@@ -37,8 +49,29 @@ export const PredictionsPage = () => {
 
 	const [showInfoModal, setShowInfoModal] = useState(false)
 
-	// Fetch matches from API
+	// Update URL params and fetch
 	useEffect(() => {
+		const params = new URLSearchParams()
+
+		if (searchQuery) {
+			params.set('query', searchQuery)
+		}
+
+		if (currentPage > 1) {
+			params.set('page', currentPage.toString())
+		}
+
+		if (predictionType === 'past') {
+			params.set('type', 'past')
+		}
+
+		if (selectedTournament) {
+			params.set('tournament', selectedTournament.toString())
+		}
+
+		setSearchParams(params, { replace: true })
+
+		// Fetch matches from API
 		const fetchMatches = async () => {
 			try {
 				setLoading(true)
@@ -49,7 +82,7 @@ export const PredictionsPage = () => {
 				let response
 				if (selectedTournament) {
 					// Get matches for specific tournament
-					response = await getMatchesByLeague(
+					response = await getMatchesByTournament(
 						selectedTournament,
 						finishedOnly,
 						currentPage,
@@ -84,12 +117,13 @@ export const PredictionsPage = () => {
 		}
 
 		fetchMatches()
-	}, [selectedTournament, currentPage, searchQuery, predictionType]) // Re-fetch when tournament, page, search, or prediction type changes
-
-	// Reset to page 1 when tournament or prediction type changes
-	useEffect(() => {
-		setCurrentPage(1)
-	}, [selectedTournament, predictionType])
+	}, [
+		searchQuery,
+		currentPage,
+		predictionType,
+		selectedTournament,
+		setSearchParams,
+	])
 
 	// Handle search button click
 	const handleSearch = () => {
@@ -111,30 +145,17 @@ export const PredictionsPage = () => {
 		}
 	}
 
-	// Helper function to group matches by date
-	function groupMatchesByDate(matches) {
-		const grouped = matches.reduce((acc, match) => {
-			const date = new Date(match.start_time)
-			const dateStr = date.toLocaleDateString('en-US', {
-				weekday: 'long',
-				month: 'long',
-				day: 'numeric',
-				year: 'numeric',
-			})
-			const existingGroup = acc.find((group) => group.date === dateStr)
-			if (existingGroup) {
-				existingGroup.matches.push(match)
-			} else {
-				acc.push({
-					date: dateStr,
-					matches: [match],
-				})
-			}
-			return acc
-		}, [])
-
-		return grouped
-	}
+	// Handle prediction type change and reset to page 1
+	const handleTypeChange = (nextType) => {
+		setPredictionType(nextType);
+		setCurrentPage(1);
+	};
+	
+	// Handle tournament change and reset to page 1
+	const handleTournamentChange = (id) => {
+		setSelectedTournament(id);
+		setCurrentPage(1);
+	};
 
 	// Pagination handlers
 	const handlePreviousPage = () => {
@@ -156,44 +177,6 @@ export const PredictionsPage = () => {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
-	// Generate page numbers for pagination
-	const getPageNumbers = () => {
-		const pages = []
-		const totalPages = pagination.pages
-		const current = currentPage
-
-		if (totalPages <= 7) {
-			// Show all pages if 7 or fewer
-			for (let i = 1; i <= totalPages; i++) {
-				pages.push(i)
-			}
-		} else {
-			// Show first page, last page, current page, and 2 pages around current
-			if (current <= 4) {
-				for (let i = 1; i <= 5; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			} else if (current >= totalPages - 3) {
-				pages.push(1)
-				pages.push('...')
-				for (let i = totalPages - 4; i <= totalPages; i++) {
-					pages.push(i)
-				}
-			} else {
-				pages.push(1)
-				pages.push('...')
-				for (let i = current - 1; i <= current + 1; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			}
-		}
-
-		return pages
-	}
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
@@ -222,7 +205,7 @@ export const PredictionsPage = () => {
 						{/* Prediction Type Toggle */}
 						<div className="inline-flex bg-gray-100 rounded-md p-1 border border-gray-200 shadow-sm">
 							<button
-								onClick={() => setPredictionType('upcoming')}
+								onClick={() => handleTypeChange('upcoming')}
 								className={`px-2 xs:px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'upcoming'
 										? 'bg-white text-green-700 shadow-sm'
@@ -232,7 +215,7 @@ export const PredictionsPage = () => {
 								Upcoming
 							</button>
 							<button
-								onClick={() => setPredictionType('past')}
+								onClick={() => handleTypeChange('past')}
 								className={`px-2 xs:px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ${
 									predictionType === 'past'
 										? 'bg-white text-green-700 shadow-sm'
@@ -243,7 +226,7 @@ export const PredictionsPage = () => {
 							</button>
 						</div>
 						<TournamentSelect
-							onSelect={setSelectedTournament}
+							onSelect={handleTournamentChange}
 							selectedId={selectedTournament}
 						/>
 					</div>
@@ -342,8 +325,7 @@ export const PredictionsPage = () => {
 												? 'No matches found for your search criteria.'
 												: predictionType === 'past'
 												? 'No completed matches available.'
-												// : 'No upcoming matches available.'}
-												: 'Unfortunately, the tennis API we relied on has discontinued its free plan, so upcoming match data is no longer available. However, you can still explore our past predictions from when the platform was live.' }
+												: 'No upcoming matches available.'}
 										</p>
 									</div>
 								)
@@ -363,7 +345,7 @@ export const PredictionsPage = () => {
 								</button>
 
 								<div className="flex items-center space-x-0.5 sm:space-x-2">
-									{getPageNumbers().map((page, index) => (
+									{getPageNumbers(currentPage, pagination.pages).map((page, index) => (
 										<button
 											key={index}
 											onClick={() =>

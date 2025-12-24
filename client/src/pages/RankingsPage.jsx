@@ -8,18 +8,29 @@ import {
 	Info,
 	AlertCircle,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getPlayerRanks } from '../utils/api'
 import Tooltip from '../components/Tooltip'
+import { getPageNumbers } from '../utils/paginationHelpers'
 
 const RankingsPage = () => {
 	const navigate = useNavigate()
-	const [searchInput, setSearchInput] = useState('') // Local state for input value
-	const [searchQuery, setSearchQuery] = useState('') // Actual search term sent to API
+	const [searchParams, setSearchParams] = useSearchParams()
+
+	// Initialize state from URL params
+	const [searchInput, setSearchInput] = useState(
+		searchParams.get('query') || ''
+	) // Local state for input value
+	const [searchQuery, setSearchQuery] = useState(
+		searchParams.get('query') || ''
+	) // Actual search term sent to API
 	const [players, setPlayers] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-	const [currentPage, setCurrentPage] = useState(1)
+	const [currentPage, setCurrentPage] = useState(() => {
+		const pageParam = searchParams.get('page')
+		return pageParam ? parseInt(pageParam, 10) : 1
+	})
 	const [imageErrors, setImageErrors] = useState({})
 	const [pagination, setPagination] = useState({
 		page: 1,
@@ -28,8 +39,21 @@ const RankingsPage = () => {
 		pages: 0,
 	})
 
-	// Fetch players from API
+	// Update URL params when searchQuery or currentPage changes
 	useEffect(() => {
+		const params = new URLSearchParams()
+
+		if (searchQuery) {
+			params.set('query', searchQuery)
+		}
+
+		if (currentPage > 1) {
+			params.set('page', currentPage.toString())
+		}
+
+		setSearchParams(params, { replace: true })
+
+		// Fetch players from API
 		const fetchPlayers = async () => {
 			try {
 				setLoading(true)
@@ -61,12 +85,7 @@ const RankingsPage = () => {
 		}
 
 		fetchPlayers()
-	}, [currentPage, searchQuery]) // Re-fetch when page or search query changes
-
-	// Reset to page 1 when search query changes
-	useEffect(() => {
-		setCurrentPage(1)
-	}, [searchQuery])
+	}, [searchQuery, currentPage, setSearchParams])
 
 	// Handle search button click
 	const handleSearch = () => {
@@ -89,74 +108,31 @@ const RankingsPage = () => {
 	}
 
 	// Handle player name click
-	const handlePlayerClick = (playerName) => {
+	const handlePlayerClick = (playerId) => {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
-		navigate('/predictions', {
-			state: {
-				searchQuery: playerName,
-				predictionType: 'past',
-			},
-		})
+		navigate(`/player/${playerId}`)
 	}
 
 	// Pagination handlers
 	const handlePreviousPage = () => {
 		if (currentPage > 1) {
 			setCurrentPage(currentPage - 1)
-			window.scrollTo({ top: 0, behavior: 'smooth' })
+			// window.scrollTo({ top: 0, behavior: 'smooth' })
 		}
 	}
 
 	const handleNextPage = () => {
 		if (currentPage < pagination.pages) {
 			setCurrentPage(currentPage + 1)
-			window.scrollTo({ top: 0, behavior: 'smooth' })
+			// window.scrollTo({ top: 0, behavior: 'smooth' })
 		}
 	}
 
 	const handlePageChange = (page) => {
 		setCurrentPage(page)
-		window.scrollTo({ top: 0, behavior: 'smooth' })
+		// window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
-	// Generate page numbers for pagination
-	const getPageNumbers = () => {
-		const pages = []
-		const totalPages = pagination.pages
-		const current = currentPage
-
-		if (totalPages <= 7) {
-			// Show all pages if 7 or fewer
-			for (let i = 1; i <= totalPages; i++) {
-				pages.push(i)
-			}
-		} else {
-			// Show first page, last page, current page, and 2 pages around current
-			if (current <= 4) {
-				for (let i = 1; i <= 5; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			} else if (current >= totalPages - 3) {
-				pages.push(1)
-				pages.push('...')
-				for (let i = totalPages - 4; i <= totalPages; i++) {
-					pages.push(i)
-				}
-			} else {
-				pages.push(1)
-				pages.push('...')
-				for (let i = current - 1; i <= current + 1; i++) {
-					pages.push(i)
-				}
-				pages.push('...')
-				pages.push(totalPages)
-			}
-		}
-
-		return pages
-	}
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">
@@ -234,15 +210,15 @@ const RankingsPage = () => {
 									<thead className="bg-green-600 text-white">
 										<tr>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="A player's real time ranking based on points earned from results in the current week and points dropped in the current week">
+												<Tooltip content="A player's current ranking based on points earned">
 													<div className="flex items-center gap-1">
-														Live Rank
+														Rank
 														<Info className="h-3 w-3" />
 													</div>
 												</Tooltip>
 											</th>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="The full name of the tennis player. Click to view their past match predictions.">
+												<Tooltip content="The full name of the tennis player. Click to view their player profile.">
 													<div className="flex items-center gap-1">
 														Name
 														<Info className="h-3 w-3" />
@@ -250,17 +226,9 @@ const RankingsPage = () => {
 												</Tooltip>
 											</th>
 											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="A player's real-time points total reflecting points earned and dropped this week.">
+												<Tooltip content="A player's real-time points total reflecting points earned.">
 													<div className="flex items-center gap-1">
-														Live Points
-														<Info className="h-3 w-3" />
-													</div>
-												</Tooltip>
-											</th>
-											<th className="px-1 sm:px-6 py-1 sm:py-4 text-left text-xs sm:text-xs font-medium uppercase tracking-wider">
-												<Tooltip content="New live points total if the player wins next match.">
-													<div className="flex items-center gap-1">
-														Next Win Points
+														Points
 														<Info className="h-3 w-3" />
 													</div>
 												</Tooltip>
@@ -280,10 +248,15 @@ const RankingsPage = () => {
 														<div className="flex items-center">
 															<div className="flex-shrink-0 h-6 w-6 sm:h-10 sm:w-10">
 																<div className="h-6 w-6 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-																	{!imageErrors[player.player_id] ? (
+																	{!player.hash_image ||
+																	player.hash_image ===
+																		'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+																	imageErrors[player.player_id] ? (
+																		<User className="h-3 w-3 sm:h-6 sm:w-6 text-gray-400" />
+																	) : (
 																		<img
-																			src={`https://images.sportdevs.com/${player.team_hash_image}.png`}
-																			alt={player.team_name}
+																			src={player.hash_image}
+																			alt={player.name}
 																			className="h-full w-full object-cover"
 																			onError={() =>
 																				setImageErrors((prev) => ({
@@ -292,19 +265,17 @@ const RankingsPage = () => {
 																				}))
 																			}
 																		/>
-																	) : (
-																		<User className="h-4 w-4 sm:h-6 sm:w-6 text-gray-400" />
 																	)}
 																</div>
 															</div>
 															<div className="ml-1 sm:ml-4 flex-1 min-w-0">
 																<button
 																	onClick={() =>
-																		handlePlayerClick(player.team_name)
+																		handlePlayerClick(player.player_id)
 																	}
 																	className="text-xs sm:text-sm font-medium text-gray-900 hover:text-green-600 transition-colors duration-200 cursor-pointer text-left break-words"
 																>
-																	{player.team_name}
+																	{player.name}
 																</button>
 															</div>
 														</div>
@@ -312,11 +283,6 @@ const RankingsPage = () => {
 													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
 														<div className="text-xs sm:text-sm text-gray-900">
 															{player.points || 'N/A'} pts
-														</div>
-													</td>
-													<td className="px-1 sm:px-6 py-1 sm:py-4 whitespace-nowrap">
-														<div className="text-xs sm:text-sm text-gray-900">
-															{player.next_win_points || 'N/A'} pts
 														</div>
 													</td>
 												</tr>
@@ -354,7 +320,7 @@ const RankingsPage = () => {
 								</button>
 
 								<div className="flex items-center space-x-0.5 sm:space-x-2">
-									{getPageNumbers().map((page, index) => (
+									{getPageNumbers(currentPage, pagination.pages).map((page, index) => (
 										<button
 											key={index}
 											onClick={() =>

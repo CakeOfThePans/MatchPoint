@@ -45,12 +45,6 @@ ML_API_URL="http://localhost:8000"
 
 # Server port (default: 5000)
 PORT=5000
-
-# SportDevs API keys for tennis data (multiple keys for rate limiting, but feel free to use the same key for all 3)
-# The keys must be in the format of "Bearer API_KEY"
-SPORTDEVS_API_KEY1="your_sportdevs_api_key_1"
-SPORTDEVS_API_KEY2="your_sportdevs_api_key_2"
-SPORTDEVS_API_KEY3="your_sportdevs_api_key_3"
 ```
 
 Set up the database:
@@ -63,13 +57,11 @@ npm run db:generate
 npm run db:push
 
 # Optional: Seed the database with initial data
+# Add players with rankings
 npm run db:seed:players
-# Include the start and end dates in YYYY-MM-DD format
-npm run db:seed:matches startDate endDate
-# Do note that some matches may not contain match odds which will cause errors
-# In that case you may have to manually update the odds in the database
-# If you choose to do so, you can update match predictions afterwards with this:
-npm run update:predictions startDate endDate
+# Add matches based on tournament url for tennis explorer
+# Example: https://www.tennisexplorer.com/us-open/2025/atp-men/
+npm run db:seed:matches tournamentURL
 ```
 
 Start the server:
@@ -101,6 +93,10 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+Create models:
+
+- Go into the models folder and run all cells in tennis_model.ipynb
 
 Start the ML service:
 
@@ -141,7 +137,7 @@ Install all dependencies at once:
 
 ```bash
 # From the root directory, install dependencies for all components
-npm run install
+npm run build
 ```
 
 After setting up all the environment files, you can start all services:
@@ -169,6 +165,7 @@ The Node.js backend provides:
 - **Prisma** ORM with PostgreSQL
 - **CORS** enabled for frontend integration
 - **Cron jobs** for automated data updates
+- **Webscrapers** using Cheerio
 
 **Key Features:**
 
@@ -177,7 +174,7 @@ The Node.js backend provides:
 - League and tournament management
 - ML result integration
 - Automated data updates via cron jobs
-- **External API Integration** - Real-time tennis data from SportDevs API
+- Tennis data by webscraping the Tennis Explorer website
 
 **Available Scripts:**
 
@@ -188,16 +185,14 @@ The Node.js backend provides:
 - `npm run db:push` - Push schema to database
 - `npm run db:migrate` - Run database migrations
 - `npm run db:seed:players` - Seed player data
-- `npm run db:seed:matches` - Seed match data given a start and end date
-- `npm run update:predictions` - Update predictions given a start and end date
+- `npm run db:seed:matches` - Seed match data given the tournament url
 
 **Cron Jobs:**
 
 The server includes automated cron jobs that run periodically:
 
-- **Daily updates** - Fetches latest player rankings, leagues, matches, match odds, and predictions
-- **Hourly updates** - Fetches latest match statistics, predictions, and updates ML results
-- **3-Hourly updates** - Updates match odds for upcoming matches within 24 hours (if odds are missing)
+- **Daily updates** - Fetches latest player rankings, tournaments and matches
+- **Hourly updates** - Updates any completed matches within the past 10 hours
 
 ### 🤖 Machine Learning Service (Model)
 
@@ -220,7 +215,8 @@ The Python FastAPI service provides:
 
 - `GET /` - Health check
 - `POST /predict` - Full-feature prediction
-- `POST /predict/odds-only` - Odds-only prediction
+- `POST /predict/odds-only` - Odds only prediction
+- `POST /predict/rank-only` - Rank only prediction
 
 ### 🎯 Frontend (Client)
 
@@ -254,26 +250,27 @@ The React frontend is built with:
 4. **ML Service** → Returns prediction results
 5. **Backend** → Returns processed data to **Frontend**
 
-## 🌐 External API Integration
+## 🕷️ Web Scraper Integration
 
-The application integrates with **SportDevs API** to fetch live tennis data:
+The application uses **web scraping** with **Cheerio** to fetch tennis data from **TennisExplorer.com**:
 
-- **League Information** - League/tournament details
-- **Live Match Results** - Real-time match outcomes
-- **Player Rankings** - Current ATP rankings and points
-- **Betting Odds** - Live match odds for prediction models
+- **Tournament Information** - Tournament details, surface types, and schedules
+- **Match Data** - Match details including date, time, court type, and player information
+- **Player Rankings** - Current ATP rankings and points from official rankings pages
+- **Betting Odds** - Average betting odds extracted from match detail pages
+- **Match Results** - Final scores and match outcomes
 
-The API integration ensures the platform always has the most current and accurate tennis data for predictions and analysis.
+The web scraper ensures the platform always has the most current and accurate tennis data for predictions and analysis by directly extracting information from TennisExplorer.com.
 
 ## 📊 Database Schema
 
 The application uses PostgreSQL with the following main entities:
 
-- **Leagues** - Tournament and league information
-- **Matches** - Match data and results
-- **Players** - Tennis player information and statistics
+- **Tournament** - Tournament information
+- **Match** - Match data and results
+- **Player** - Tennis player information and statistics
 - **MLResultOverall** - Machine learning prediction results overall
-- **MLResultsByLeague** - Machine learning prediction results per league
+- **MLResultsByTournament** - Machine learning prediction results per tournament
 
 ## 🔧 Environment Variables
 
@@ -288,12 +285,6 @@ ML_API_URL="http://localhost:8000"
 
 # Server port (default: 5000)
 PORT=5000
-
-# SportDevs API keys for tennis data (multiple keys for rate limiting, but feel free to use the same key for all 3)
-# The keys must be in the format of "Bearer API_KEY"
-SPORTDEVS_API_KEY1="your_sportdevs_api_key_1"
-SPORTDEVS_API_KEY2="your_sportdevs_api_key_2"
-SPORTDEVS_API_KEY3="your_sportdevs_api_key_3"
 ```
 
 ### Client (.env)
@@ -333,7 +324,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ```bash
 # Install all dependencies at once
-npm run install
+npm run build
 
 # From the root directory, start backend and ML service concurrently
 npm run start

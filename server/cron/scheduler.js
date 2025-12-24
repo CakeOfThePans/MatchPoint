@@ -1,64 +1,45 @@
 import cron from 'node-cron'
-import { runDailyJobs, runHourlyJobs, runOddsUpdate } from './jobFunctions.js'
-import prisma from '../lib/prisma.js'
-import { getDate } from '../utils/dateUtils.js'
-
-// Check if daily jobs have run today
-const hasDailyJobsRunToday = async () => {
-	const lastRunRecord = await prisma.mLResultOverall.findFirst()
-
-	if (!lastRunRecord || !lastRunRecord.last_daily_run) {
-		return false
-	}
-
-	const lastRunDate = new Date(lastRunRecord.last_daily_run)
-
-	// Compare the dates not the time
-	return getDate(lastRunDate) === getDate(new Date())
-}
+import { updateTourJob, updateLiveMatchesJob, updateRankingsJob } from './jobFunctions.js'
 
 // Initialize all cron jobs
 const startCronJobs = () => {
 	console.log('Initializing cron jobs...')
 
-	// Daily job - runs at 12:00 AM (midnight) every day
+	// Tour jobs run at 0:30 (12:30 AM) every day in GMT+1
 	cron.schedule(
-		'0 0 * * *',
+		'30 0 * * *',
 		async () => {
-			console.log('Running daily cron jobs at:', new Date().toISOString())
-			await runDailyJobs()
+			console.log('Running tour jobs at 0:30 AM GMT+1...')
+			await updateTourJob()
 		},
 		{
-			scheduled: true,
-			timezone: 'UTC',
+			timezone: 'Europe/Paris', // GMT+1 (with DST support)
 		}
 	)
 
-	// Hourly job - runs every hour at hh:30
+	// Rankings jobs run at 12:30 (12:30 PM) every day in GMT+1
 	cron.schedule(
-		'30 * * * *',
+		'30 12 * * *',
 		async () => {
-			console.log('Running hourly cron jobs at:', new Date().toISOString())
-			// If the daily jobs haven't run today, run them now
-			if (!(await hasDailyJobsRunToday())) {
-				await runDailyJobs()
-			}
-			await runHourlyJobs()
+			console.log('Running rankings jobs at 12:30 PM GMT+1...')
+			await updateRankingsJob()
 		},
 		{
-			scheduled: true,
-			timezone: 'UTC',
+			timezone: 'Europe/Paris', // GMT+1 (with DST support)
 		}
 	)
 
-	// Update odds every 3 hours at 10 minutes past the hour (so it doesn't interfere with other jobs)
-	cron.schedule('10 */3 * * *', async () => {
-		console.log('Running odds update cron job at:', new Date().toISOString())
-		await runOddsUpdate()
-	}, {
-		scheduled: true,
-		timezone: 'UTC',
-	})
+	// Live matches jobs run at the top of every hour in GMT+1
+	cron.schedule(
+		'0 * * * *',
+		async () => {
+			console.log('Running live matches jobs every hour...')
+			await updateLiveMatchesJob()
+		},
+		{
+			timezone: 'Europe/Paris', // GMT+1 (with DST support)
+		}
+	)
 
 	console.log('Cron jobs initialized successfully')
 }

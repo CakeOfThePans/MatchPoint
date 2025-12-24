@@ -1,94 +1,54 @@
 import React, { useState } from 'react'
-import { Calendar, Clock, User, Brain, Info } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Calendar, Clock, User, Info } from 'lucide-react'
 import Tooltip from './Tooltip'
+import { formatDate, formatTime } from '../utils/dateHelpers'
+import {
+	formatProbability,
+	getProbabilityColor,
+} from '../utils/probabilityHelpers'
+import { getModelInfo } from '../utils/matchHelpers'
 
 export const MatchCard = ({ match, isPast = false }) => {
+	const navigate = useNavigate()
 	const [homeImageError, setHomeImageError] = useState(false)
 	const [awayImageError, setAwayImageError] = useState(false)
 
 	// Extract data from backend structure
 	const homeTeam = match.home_team
 	const awayTeam = match.away_team
-	const league = match.league
+	const tournament = match.tournament
 
-	if (!homeTeam || !awayTeam || !league) return null
+	if (!homeTeam || !awayTeam || !tournament) return null
 
-	const date = new Date(match.start_time)
-	const formattedDate = date.toLocaleDateString('en-US', {
+	const formattedDate = formatDate(match.start_time, {
 		day: 'numeric',
 		month: 'short',
 		year: 'numeric',
 	})
-	// Floor minutes to 5-minute intervals
-	const minutes = date.getMinutes()
-	const flooredMinutes = Math.floor(minutes / 5) * 5
-	const flooredDate = new Date(date)
-	flooredDate.setMinutes(flooredMinutes, 0, 0)
-
-	const formattedTime = flooredDate.toLocaleTimeString('en-US', {
-		hour: '2-digit',
-		minute: '2-digit',
-	})
+	const formattedTime = formatTime(match.start_time)
 
 	// Calculate prediction percentages if available
 	const homeTeamProb = match.home_team_prediction_prob
 	const awayTeamProb = match.away_team_prediction_prob
 
-	// Format probability display
-	const formatProbability = (prob) => {
-		if (prob === null || prob === undefined) {
-			return '?%'
-		}
-		return `${(prob * 100).toFixed(1)}%`
-	}
-
-	// Get probability color based on percentage
-	const getProbabilityColor = (prob) => {
-		if (prob === null || prob === undefined) {
-			return 'bg-gray-100 text-gray-700'
-		}
-		const percentage = prob * 100
-		if (percentage >= 70) {
-			return 'bg-green-100 text-green-800'
-		} else if (percentage >= 50) {
-			return 'bg-yellow-100 text-yellow-800'
-		} else if (percentage >= 30) {
-			return 'bg-orange-100 text-orange-800'
-		} else {
-			return 'bg-red-100 text-red-800'
-		}
-	}
-
 	// Get model info for tooltip
-	const getModelInfo = () => {
-		const model = match.prediction_model
-		if (!model) return null
+	const modelInfo = getModelInfo(match)
 
-		const modelInfo = {
-			1: {
-				label: 'primary',
-				desc: 'surface, ranks, points, odds',
-			},
-			2: {
-				label: 'secondary',
-				desc: 'surface, odds',
-			},
-			3: {
-				label: 'tertiary',
-				desc: 'surface, ranks, points',
-			},
-		}
-
-		return modelInfo[model] || null
+	const handleCardClick = () => {
+		navigate(`/match/${match.match_id}`)
 	}
 
 	return (
-		<div className="bg-white rounded-lg shadow-md overflow-hidden">
+		<div
+			className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
+			onClick={handleCardClick}
+		>
 			<div className="bg-green-50 px-4 py-2 border-b border-gray-200">
 				<div className="flex flex-col space-y-1">
 					<div className="flex justify-between items-center">
 						<h3 className="font-medium text-green-800 text-sm">
-							{league.competition_name}
+							{tournament.tournament_name}
 						</h3>
 						<div className="flex items-center text-sm text-gray-600">
 							<Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
@@ -99,9 +59,9 @@ export const MatchCard = ({ match, isPast = false }) => {
 					</div>
 					<div className="flex items-center justify-between">
 						<p className="text-sm text-gray-600 truncate">{match.name}</p>
-						{getModelInfo() && (
+						{modelInfo && (
 							<Tooltip
-								content={`This match was predicted using the ${getModelInfo().label} model, which uses the following features: ${getModelInfo().desc}`}
+								content={`This match was predicted using the ${modelInfo.label} model, which uses the following features: ${modelInfo.desc}`}
 							>
 								<Info className="h-4 w-4 text-gray-400 flex-shrink-0" />
 							</Tooltip>
@@ -113,19 +73,22 @@ export const MatchCard = ({ match, isPast = false }) => {
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex items-center">
 						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
-							{!homeImageError ? (
+							{!homeTeam.hash_image ||
+							homeTeam.hash_image ===
+								'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+							homeImageError ? (
+								<User className="h-6 w-6 text-gray-400" />
+							) : (
 								<img
-									src={`https://images.sportdevs.com/${homeTeam.team_hash_image}.png`}
-									alt={homeTeam.team_name}
+									src={homeTeam.hash_image}
+									alt={homeTeam.name}
 									className="w-full h-full object-cover"
 									onError={() => setHomeImageError(true)}
 								/>
-							) : (
-								<User className="h-6 w-6 text-gray-400" />
 							)}
 						</div>
 						<div className="ml-3">
-							<p className="font-medium">{homeTeam.team_name}</p>
+							<p className="font-medium">{homeTeam.name}</p>
 							{!isPast && homeTeam.rank && (
 								<p className="text-sm text-gray-600">Rank {homeTeam.rank}</p>
 							)}
@@ -142,19 +105,22 @@ export const MatchCard = ({ match, isPast = false }) => {
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
 						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
-							{!awayImageError ? (
+							{!awayTeam.hash_image ||
+							awayTeam.hash_image ===
+								'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+							awayImageError ? (
+								<User className="h-6 w-6 text-gray-400" />
+							) : (
 								<img
-									src={`https://images.sportdevs.com/${awayTeam.team_hash_image}.png`}
-									alt={awayTeam.team_name}
+									src={awayTeam.hash_image}
+									alt={awayTeam.name}
 									className="w-full h-full object-cover"
 									onError={() => setAwayImageError(true)}
 								/>
-							) : (
-								<User className="h-6 w-6 text-gray-400" />
 							)}
 						</div>
 						<div className="ml-3">
-							<p className="font-medium">{awayTeam.team_name}</p>
+							<p className="font-medium">{awayTeam.name}</p>
 							{!isPast && awayTeam.rank && (
 								<p className="text-sm text-gray-600">Rank {awayTeam.rank}</p>
 							)}
@@ -173,7 +139,7 @@ export const MatchCard = ({ match, isPast = false }) => {
 						<p className="text-sm font-medium">
 							Surface:{' '}
 							<span className="font-medium text-gray-600">
-								{league.surface_type}
+								{tournament.surface_type}
 							</span>
 						</p>
 						{match.winner_id &&
