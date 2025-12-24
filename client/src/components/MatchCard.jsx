@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, User, Info } from 'lucide-react'
 import Tooltip from './Tooltip'
 
 export const MatchCard = ({ match, isPast = false }) => {
+	const navigate = useNavigate()
 	const [homeImageError, setHomeImageError] = useState(false)
 	const [awayImageError, setAwayImageError] = useState(false)
 
@@ -82,8 +84,15 @@ export const MatchCard = ({ match, isPast = false }) => {
 		return modelInfo[model] || null
 	}
 
+	const handleCardClick = () => {
+		navigate(`/match/${match.match_id}`)
+	}
+
 	return (
-		<div className="bg-white rounded-lg shadow-md overflow-hidden">
+		<div
+			className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
+			onClick={handleCardClick}
+		>
 			<div className="bg-green-50 px-4 py-2 border-b border-gray-200">
 				<div className="flex flex-col space-y-1">
 					<div className="flex justify-between items-center">
@@ -118,8 +127,9 @@ export const MatchCard = ({ match, isPast = false }) => {
 					<div className="flex items-center">
 						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
 							{!homeTeam.hash_image ||
-								homeTeam.hash_image === 'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
-								homeImageError ? (
+							homeTeam.hash_image ===
+								'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+							homeImageError ? (
 								<User className="h-6 w-6 text-gray-400" />
 							) : (
 								<img
@@ -149,8 +159,9 @@ export const MatchCard = ({ match, isPast = false }) => {
 					<div className="flex items-center">
 						<div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
 							{!awayTeam.hash_image ||
-								awayTeam.hash_image === 'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
-								awayImageError ? (
+							awayTeam.hash_image ===
+								'https://www.tennisexplorer.com/res/img/default-avatar.jpg' ||
+							awayImageError ? (
 								<User className="h-6 w-6 text-gray-400" />
 							) : (
 								<img
