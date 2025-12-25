@@ -123,7 +123,7 @@ export const ResultsPage = () => {
 					<div className="flex items-center justify-center py-16">
 						<div className="text-center">
 							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-							<p className="mt-3 text-gray-600">Loading rankings...</p>
+							<p className="mt-3 text-gray-600">Loading results...</p>
 						</div>
 					</div>
 				) : error ? (

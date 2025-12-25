@@ -1,5 +1,4 @@
-import { runDailyJobs, runHourlyJobs, runOddsUpdate } from '../cron/jobFunctions.js'
-import { updatePredictionsByMatch } from '../services/PredictionService.js'
-import prisma from '../lib/prisma.js'
+import { scrapeTournamentInfo } from '../webscraper/tournamentScraper.js'
 
-await runDailyJobs()
+const temp = await scrapeTournamentInfo('https://www.tennisexplorer.com/united-cup/2026/atp-men/')
+console.log(temp)
