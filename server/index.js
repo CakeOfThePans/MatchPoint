@@ -25,11 +25,13 @@ import tournamentRoutes from './routes/tournaments.js'
 import matchRoutes from './routes/matches.js'
 import playerRoutes from './routes/players.js'
 import mlResultRoutes from './routes/mlresults.js'
+import adminRoutes from './routes/admin.js'
 
 app.use('/api/tournaments', tournamentRoutes)
 app.use('/api/matches', matchRoutes)
 app.use('/api/players', playerRoutes)
 app.use('/api/mlresults', mlResultRoutes)
+app.use('/api/admin', adminRoutes)
 
 // Error handling middleware
 app.use((error, req, res, next) => {

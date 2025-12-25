@@ -1,15 +1,23 @@
 import { updateTournaments } from '../services/tournamentService.js'
-import { updateMatchesFromTournament, updateLiveMatches } from '../services/matchService.js'
+import {
+	updateMatchesFromTournament,
+	updateLiveMatches,
+} from '../services/matchService.js'
 import { updateRankings } from '../services/playerService.js'
-import { updateOverallMLResults, updateMLResultsForRecentTournaments } from '../services/mlResultService.js'
+import {
+	updateOverallMLResults,
+	updateMLResultsForRecentTournaments,
+} from '../services/mlResultService.js'
 
 // Update rankings
 export const updateRankingsJob = async () => {
 	try {
 		await updateRankings()
 		console.log(`Rankings updated successfully`)
+		return true
 	} catch (error) {
 		console.error(`Error updating rankings:`, error)
+		return false
 	}
 }
 
@@ -23,8 +31,10 @@ export const updateTourJob = async () => {
 		await updateOverallMLResults()
 		await updateMLResultsForRecentTournaments()
 		console.log(`Daily jobs completed successfully`)
+		return true
 	} catch (error) {
 		console.error(`Error running daily jobs:`, error)
+		return false
 	}
 }
 
@@ -35,7 +45,9 @@ export const updateLiveMatchesJob = async () => {
 		await updateOverallMLResults()
 		await updateMLResultsForRecentTournaments()
 		console.log(`Hourly jobs completed successfully`)
+		return true
 	} catch (error) {
 		console.error(`Error running hourly jobs:`, error)
+		return false
 	}
 }

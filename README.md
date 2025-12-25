@@ -250,27 +250,58 @@ The React frontend is built with:
 4. **ML Service** → Returns prediction results
 5. **Backend** → Returns processed data to **Frontend**
 
-## 🕷️ Web Scraper Integration
+## 🌐 External API Integration
 
-The application uses **web scraping** with **Cheerio** to fetch tennis data from **TennisExplorer.com**:
+The application integrates with **SportDevs API** to fetch live tennis data:
 
-- **Tournament Information** - Tournament details, surface types, and schedules
-- **Match Data** - Match details including date, time, court type, and player information
-- **Player Rankings** - Current ATP rankings and points from official rankings pages
-- **Betting Odds** - Average betting odds extracted from match detail pages
-- **Match Results** - Final scores and match outcomes
+- **League Information** - League/tournament details
+- **Live Match Results** - Real-time match outcomes
+- **Player Rankings** - Current ATP rankings and points
+- **Betting Odds** - Live match odds for prediction models
 
-The web scraper ensures the platform always has the most current and accurate tennis data for predictions and analysis by directly extracting information from TennisExplorer.com.
+The API integration ensures the platform always has the most current and accurate tennis data for predictions and analysis.
 
 ## 📊 Database Schema
 
 The application uses PostgreSQL with the following main entities:
 
-- **Tournament** - Tournament information
-- **Match** - Match data and results
-- **Player** - Tennis player information and statistics
+- **Leagues** - Tournament and league information
+- **Matches** - Match data and results
+- **Players** - Tennis player information and statistics
 - **MLResultOverall** - Machine learning prediction results overall
-- **MLResultsByTournament** - Machine learning prediction results per tournament
+- **MLResultsByLeague** - Machine learning prediction results per league
+
+## 🔐 Admin API
+
+The admin API provides endpoints to manually trigger background jobs. All admin endpoints require API key authentication.
+
+**Authentication:**
+- Include API key in `Authorization` header as `Bearer <API_KEY>`
+- Or include in `X-API-Key` header
+- API key must be set in `ADMIN_API_KEY` environment variable
+
+**Endpoints:**
+
+- `POST /api/admin/update-rankings` - Manually trigger rankings update job
+  - Updates all player rankings from TennisExplorer.com
+  - Returns success/error status
+
+- `POST /api/admin/update-tournaments` - Manually trigger tournament and matches update job
+  - Updates all tournaments and their matches
+  - Updates ML results for all tournaments
+  - Returns success/error status
+
+- `POST /api/admin/update-live-matches` - Manually trigger live matches update job
+  - Updates completed matches from the past 10 hours
+  - Updates ML results
+  - Returns success/error status
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:5000/api/admin/update-rankings \
+  -H "Authorization: Bearer your_admin_api_key_here"
+```
 
 ## 🔧 Environment Variables
 
@@ -285,6 +316,9 @@ ML_API_URL="http://localhost:8000"
 
 # Server port (default: 5000)
 PORT=5000
+
+# Admin API key for accessing admin endpoints (required for /api/admin routes)
+ADMIN_API_KEY="your_admin_api_key_here"
 ```
 
 ### Client (.env)
@@ -324,7 +358,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ```bash
 # Install all dependencies at once
-npm run build
+npm run install
 
 # From the root directory, start backend and ML service concurrently
 npm run start
