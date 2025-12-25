@@ -9,6 +9,8 @@ export const updateTournaments = async () => {
 	try {
 		// Scrape tournaments from the page
 		const scrapedTournaments = await scrapeAtpTournaments()
+		// Add a delay of anywhere between 3-7 seconds
+		await new Promise((resolve) => setTimeout(resolve, Math.random() * 4000 + 3000))
 
 		const result = []
 
@@ -37,6 +39,9 @@ export const updateTournaments = async () => {
 				tournament_id: upserted.tournament_id,
 				url: tournament.url,
 			})
+
+			// Add a delay of anywhere between 3-7 seconds
+			await new Promise((resolve) => setTimeout(resolve, Math.random() * 4000 + 3000))
 		}
 
 		console.log(`Updated ${result.length} tournaments`)
