@@ -7,7 +7,7 @@ const startCronJobs = () => {
 
 	// Tour jobs run at 0:30 (12:30 AM) every day in GMT+1
 	cron.schedule(
-		'30 1 * * *',
+		'30 0 * * *',
 		async () => {
 			console.log('Running tour jobs at 0:30 AM GMT+1...')
 			await updateTourJob()
