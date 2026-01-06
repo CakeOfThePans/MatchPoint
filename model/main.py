@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
 import os
-from xgboost import XGBClassifier
+import joblib
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -12,18 +12,13 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Load the model and feature names
 try:
-    primary_model_path = os.path.join(current_dir, "models", "primary_model.json")
-    secondary_model_path = os.path.join(current_dir, "models", "secondary_model.json")
-    tertiary_model_path = os.path.join(current_dir, "models", "tertiary_model.json")
+    primary_model_path = os.path.join(current_dir, "models", "primary_model.joblib")
+    secondary_model_path = os.path.join(current_dir, "models", "secondary_model.joblib")
+    tertiary_model_path = os.path.join(current_dir, "models", "tertiary_model.joblib")
 
-    primary_model = XGBClassifier()
-    primary_model.load_model(primary_model_path)
-    
-    secondary_model = XGBClassifier()
-    secondary_model.load_model(secondary_model_path)
-    
-    tertiary_model = XGBClassifier()
-    tertiary_model.load_model(tertiary_model_path)
+    primary_model = joblib.load(primary_model_path)
+    secondary_model = joblib.load(secondary_model_path)
+    tertiary_model = joblib.load(tertiary_model_path)
 except Exception as e:
     raise Exception(f"Error loading the models: {str(e)}")
 
