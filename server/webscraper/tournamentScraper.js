@@ -74,19 +74,13 @@ function filterAtpMenOnly(tournaments) {
     if (n.includes("wta") || n.includes("women") || n.includes("girls")) {
       return false;
     }
-
+    
     // Explicitly require ATP men indicator in URL
     if (!url.includes("atp-men")) {
       return false;
     }
-
-    // Keep ATP men tournaments
-    return (
-      n.includes("atp") ||         
-      n.includes("masters") ||       
-      n.includes("open") ||          
-      n.includes("cup")              
-    );
+    
+    return true;
   });
 }
 
@@ -113,17 +107,13 @@ function extractTournamentInfo(html) {
   // Extract tournament name and year
   text = $("#center h1").first().text().trim();
 
-  // Extract year (4 digits)
-  const yearMatch = text.match(/\b(19|20)\d{2}\b/);
-  output.year = Number(yearMatch[0]);
+  // Remove ONLY the far-right "(...)" which is the country
+  const withoutCountry = text.replace(/\s*\([^()]*\)\s*$/, "");
 
-  // Remove anything in parentheses
-  text = text.replace(/\s*\([^)]*\)\s*/g, "").trim();
-
-  // Remove trailing year
-  text = text.replace(/\s+\d{4}$/, "").trim();
-  output.name = text;
-
+  // Separate the name and year
+  const match = withoutCountry.match(/^(.*)\s(\d{4})$/);
+  output.name = match[1].trim();
+  output.year = Number(match[2]);
 
   // Extract last match date
   const resultsTable = $("#center").find("table.result").first();
