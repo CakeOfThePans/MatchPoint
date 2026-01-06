@@ -80,8 +80,8 @@ const MatchPage = () => {
 		? match.away_team_prediction_prob * 100
 		: null
 
-	const homeDetails = formatPlayerDetails(homeTeam)
-	const awayDetails = formatPlayerDetails(awayTeam)
+	const homeDetails = formatPlayerDetails(match, homeTeam, 'home')
+	const awayDetails = formatPlayerDetails(match, awayTeam, 'away')
 
 	return (
 		<div className="bg-gray-50 min-h-screen w-full">

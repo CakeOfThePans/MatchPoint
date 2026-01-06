@@ -5,20 +5,20 @@
  * @param {object} player - Player object
  * @returns {Array} Array of objects with label and value properties
  */
-export const formatPlayerDetails = (player) => {
+export const formatPlayerDetails = (match, player, side) => {
 	if (!player) return []
 	const details = []
 
 	// Rank
 	details.push({
-		label: 'Rank',
-		value: player.rank ? `#${player.rank}` : '-',
+		label: 'Rank (At the time)',
+		value: (side === 'home' ? match.home_team_rank : match.away_team_rank ) ?? '-' ,
 	})
 
 	// Points
 	details.push({
-		label: 'Points',
-		value: player.points ? player.points.toLocaleString() : '-',
+		label: 'Points (At the time)',
+		value: (side === 'home' ? match.home_team_points : match.away_team_points ) ?? '-' ,
 	})
 
 	// Age

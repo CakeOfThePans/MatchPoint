@@ -464,15 +464,13 @@ export const PredictionsPage = () => {
 											<ul className="list-disc list-inside space-y-1 ml-4 mt-1">
 												<li>
 													<strong>Primary Model:</strong> Full features
-													(surface, ranks, points, odds) - Most accurate
+													(surface, dominant hand, age, height, rank, points, odds) - Most accurate
 												</li>
 												<li>
-													<strong>Secondary Model:</strong> Odds-only (surface,
-													odds)
+													<strong>Secondary Model:</strong> Rank and odds (surface, rank, points, and odds)
 												</li>
 												<li>
-													<strong>Tertiary Model:</strong> Rank-only (surface,
-													ranks, points)
+													<strong>Tertiary Model:</strong> Odds only (surface, odds)
 												</li>
 											</ul>
 										</li>

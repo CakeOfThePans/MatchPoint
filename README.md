@@ -207,9 +207,9 @@ The Python FastAPI service provides:
 
 - Tennis match outcome predictions
 - Three prediction models depending on the data available:
-  - Full-feature model (surface, rankings, points, odds)
-  - Odds-only model (surface and betting odds)
-  - Rank-only model (surface, rankings, points)
+  - Full-feature model (surface, dominant hand, age, height, rank, points, odds)
+  - Rank and odds model (surface, rank, points, and odds)
+  - Odds-only model (surface, odds)
 
 **API Endpoints:**
 
@@ -276,6 +276,7 @@ The application uses PostgreSQL with the following main entities:
 The admin API provides endpoints to manually trigger background jobs. All admin endpoints require API key authentication.
 
 **Authentication:**
+
 - Include API key in `Authorization` header as `Bearer <API_KEY>`
 - Or include in `X-API-Key` header
 - API key must be set in `ADMIN_API_KEY` environment variable
@@ -283,15 +284,16 @@ The admin API provides endpoints to manually trigger background jobs. All admin 
 **Endpoints:**
 
 - `POST /api/admin/update-rankings` - Manually trigger rankings update job
+
   - Updates all player rankings from TennisExplorer.com
   - Returns success/error status
-
 - `POST /api/admin/update-tournaments` - Manually trigger tournament and matches update job
+
   - Updates all tournaments and their matches
   - Updates ML results for all tournaments
   - Returns success/error status
-
 - `POST /api/admin/update-live-matches` - Manually trigger live matches update job
+
   - Updates completed matches from the past 10 hours
   - Updates ML results
   - Returns success/error status
