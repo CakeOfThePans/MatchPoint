@@ -1,4 +1,4 @@
-import { scrapeTournamentInfo } from '../webscraper/tournamentScraper.js'
+import { updateMatchAndPlayers } from '../services/matchService.js'
 
-const temp = await scrapeTournamentInfo('https://www.tennisexplorer.com/united-cup/2026/atp-men/')
+const temp = await updateMatchAndPlayers(3096984, 2)
 console.log(temp)

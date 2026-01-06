@@ -20,3 +20,15 @@ export const determineStatusType = (finalScore, datetime) => {
 	return "In Progress";
 };
 
+// gets age in years (decimal) between match date and birth date
+export const getAge = (matchDate, birthDate) => {
+  const age = (matchDate - birthDate) / (365.25 * 24 * 60 * 60 * 1000)
+  return age
+}
+
+// formats play style to a number
+export const formatPlayStyle = (playStyle) => {
+  if (playStyle === "left") return 0
+  if (playStyle === "right") return 1
+  return 0
+}
