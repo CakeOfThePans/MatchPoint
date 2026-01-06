@@ -29,9 +29,13 @@ model Match {
   status_type               String
   home_team_id              Int
   home_team_name            String
+  home_team_rank            Int?
+  home_team_points          Int?
   home_team_hash_image      String
   away_team_id              Int
   away_team_name            String
+  away_team_rank            Int?
+  away_team_points          Int?
   away_team_hash_image      String
   start_time                DateTime
   score                     String?

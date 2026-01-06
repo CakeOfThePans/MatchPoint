@@ -1,7 +1,7 @@
 import { scrapeNextMatches } from "../webscraper/matchesScraper.js";
 import { scrapeMatch } from "../webscraper/matchScraper.js";
 import prisma from "../lib/prisma.js";
-import { formatCourtType, determineStatusType } from "../utils/matchUtils.js";
+import { formatCourtType, determineStatusType, getAge, formatPlayStyle } from "../utils/matchUtils.js";
 import { findOrCreatePlayer } from "./playerService.js";
 import axios from "axios";
 
@@ -81,7 +81,18 @@ export const updateMatchAndPlayers = async (matchId, tournamentId) => {
     if (!homeTeamId || !awayTeamId) {
       throw new Error(`Failed to create/find players for match ${matchId}`);
     }
-
+    // Update player ranks and points for the match if available
+    const player1 = await prisma.player.findUnique({
+      where: {
+        player_id: homeTeamId,
+      },
+    })
+    const player2 = await prisma.player.findUnique({
+      where: {
+        player_id: awayTeamId,
+      },
+    })
+    
     // Parse datetime
     // If datetime is null, don't continue
     if (!matchData.datetime) {
@@ -97,9 +108,13 @@ export const updateMatchAndPlayers = async (matchId, tournamentId) => {
       status_type: determineStatusType(matchData.finalScore, matchData.datetime),
       home_team_id: homeTeamId,
       home_team_name: player1Data.name,
+      home_team_rank: player1?.rank || null,
+      home_team_points: player1?.points || null,
       home_team_hash_image: player1Data.imageUrl || "",
       away_team_id: awayTeamId,
       away_team_name: player2Data.name,
+      away_team_rank: player2?.rank || null,
+      away_team_points: player2?.points || null,
       away_team_hash_image: player2Data.imageUrl || "",
       start_time: startTime,
       tournament_id: tournamentId,
@@ -161,16 +176,6 @@ const getPredictionsByMatch = async (match, homeTeamId, awayTeamId) => {
 		// Get ML API URL from environment variable
 		const mlApiUrl = process.env.ML_API_URL || 'http://localhost:8000'
 
-		// Convert surface type to numeric value for the ML model
-		const surfaceMap = {
-			Hard: 0,
-			Clay: 1,
-			Grass: 2,
-		}
-
-		const surfaceType = surfaceMap[match.surface_type] || 0
-
-
     const homeTeam = await prisma.player.findUnique({
       where: {
         player_id: homeTeamId,
@@ -182,71 +187,86 @@ const getPredictionsByMatch = async (match, homeTeamId, awayTeamId) => {
       },
     })
     if (!homeTeam || !awayTeam) {
-      throw new Error(`Failed to find players for match ${matchId}`);
+      throw new Error(`Failed to find players for match ${match.match_id}`);
     }
 
 		// Check if we have complete player data for full model
-		const hasCompleteData =
-			homeTeam.rank &&
-			awayTeam.rank &&
-			homeTeam.points &&
-			awayTeam.points &&
+		const hasPrimaryData =
+			match.surface_type &&
+			homeTeam.plays &&
+			awayTeam.plays &&
+			homeTeam.height &&
+			awayTeam.height &&
+			homeTeam.birth_date &&
+			awayTeam.birth_date &&
+			match.home_team_rank &&
+			match.away_team_rank &&
+			match.home_team_points &&
+			match.away_team_points &&
 			match.home_team_odds &&
 			match.away_team_odds
 
-		const hasOdds = match.home_team_odds && match.away_team_odds
+		const hasSecondaryData =
+			match.surface_type &&
+			match.home_team_rank &&
+			match.away_team_rank &&
+			match.home_team_points &&
+			match.away_team_points &&
+			match.home_team_odds &&
+			match.away_team_odds
 
-		const hasRanks =
-			homeTeam.rank &&
-			awayTeam.rank &&
-			homeTeam.points &&
-			awayTeam.points
+		const hasTertiaryData =
+			match.surface_type &&
+			match.home_team_odds &&
+			match.away_team_odds
 
 		let predictionResponse
 		let model
-		if (hasCompleteData) {
+		if (hasPrimaryData) {
 			// Use full model with all features
 			const modelData = {
-				surface: surfaceType,
-				p1_rank: homeTeam.rank, 
-				p2_rank: awayTeam.rank,
-				p1_points: homeTeam.points,
-				p2_points: awayTeam.points,
-				p1_b365_odds: match.home_team_odds,
-				p2_b365_odds: match.away_team_odds,
+				surface: match.surface_type,
+				p1_hand: formatPlayStyle(homeTeam.plays),
+				p2_hand: formatPlayStyle(awayTeam.plays),
+				p1_ht: homeTeam.height,
+				p2_ht: awayTeam.height,
+				p1_age: getAge(match.start_time, homeTeam.birth_date),
+				p2_age: getAge(match.start_time, awayTeam.birth_date),
+				p1_rank: match.home_team_rank,
+				p2_rank: match.away_team_rank,
+				p1_points: match.home_team_points,
+				p2_points: match.away_team_points,
+				p1_odds: match.home_team_odds,
+				p2_odds: match.away_team_odds,
 			}
 
-			const response = await axios.post(`${mlApiUrl}/predict`, modelData)
+			const response = await axios.post(`${mlApiUrl}/predict/primary`, modelData)
 			predictionResponse = response.data
 			model = 1
-		} else if (hasOdds) {
-			// Fallback to odds-only model if we have odds
+		} else if (hasSecondaryData) {
+			// Use secondary model with rank, points, odds
 			const modelData = {
-				surface: surfaceType,
-				p1_b365_odds: match.home_team_odds,
-				p2_b365_odds: match.away_team_odds,
+				surface: match.surface_type,
+				p1_rank: match.home_team_rank,
+				p2_rank: match.away_team_rank,
+				p1_points: match.home_team_points,
+				p2_points: match.away_team_points,
+				p1_odds: match.home_team_odds,
+				p2_odds: match.away_team_odds,
 			}
 
-			const response = await axios.post(
-				`${mlApiUrl}/predict/odds-only`,
-				modelData
-			)
+			const response = await axios.post(`${mlApiUrl}/predict/secondary`, modelData)
 			predictionResponse = response.data
 			model = 2
-		} else if (hasRanks) {
-			// Use rank-only model if we have ranks
+		} else if (hasTertiaryData) {
+			// Use tertiary model with odds only
 			const modelData = {
-				surface: surfaceType,
-				p1_rank: homeTeam.rank,
-				p2_rank: awayTeam.rank,
-				p1_points: homeTeam.points,
-				p2_points: awayTeam.points,
+				surface: match.surface_type,
+				p1_odds: match.home_team_odds,
+				p2_odds: match.away_team_odds,
 			}
 
-			const response = await axios.post(
-				`${mlApiUrl}/predict/rank-only`,
-				modelData
-			)
+			const response = await axios.post(`${mlApiUrl}/predict/tertiary`, modelData)
 			predictionResponse = response.data
 			model = 3
 		} else {
