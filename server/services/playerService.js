@@ -1,6 +1,7 @@
 import { scrapeAtpRankings } from '../webscraper/rankingsScraper.js'
 import prisma from '../lib/prisma.js'
 import { PAGE_LIMIT } from '../webscraper/config.js'
+import { scrapePlayer } from '../webscraper/playerScraper.js'
 
 /**
  * Helper function to find or create a player by name.
@@ -55,9 +56,9 @@ export const findOrCreatePlayer = async (playerData) => {
 	}
 }
 
-export const updateRankings = async () => {
+export const updateRankings = async ( updatePlayerInfo = false ) => {
 	try {
-		console.log('Updating rankings...')
+		console.log('Updating rankings', updatePlayerInfo ? 'with player info' : 'without player info')
 
 		// Get all rankings and store locally
 		console.log('Scraping all rankings pages...')
@@ -101,6 +102,26 @@ export const updateRankings = async () => {
 		for (const ranking of allRankings) {
 			if (!ranking.name || !ranking.rank || !ranking.points) continue
 
+			let updateData = {
+				name: ranking.name,
+				rank: ranking.rank,
+				points: ranking.points,
+			}
+			if (updatePlayerInfo) {
+				// add a delay of anywhere between 3-7 seconds
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.random() * 4000 + 3000)
+				)
+				
+				console.log(`Updating player info for ${ranking.name}`)
+				const playerInfo = await scrapePlayer(ranking.playerUrl)
+				if(playerInfo.birthdate) updateData.birth_date = new Date(playerInfo.birthdate)
+				if(playerInfo.height) updateData.height = parseInt(playerInfo.height)
+				if(playerInfo.weight) updateData.weight = parseInt(playerInfo.weight)
+				if(playerInfo.plays) updateData.plays = playerInfo.plays
+				if(playerInfo.imageUrl) updateData.hash_image = playerInfo.imageUrl
+			}
+
 			try {
 				// Try to find existing player by name
 				const existingPlayer = await prisma.player.findFirst({
@@ -115,19 +136,12 @@ export const updateRankings = async () => {
 						where: {
 							player_id: existingPlayer.player_id,
 						},
-						data: {
-							rank: ranking.rank,
-							points: ranking.points,
-						},
+						data: updateData,
 					})
 				} else {
 					// Create new player if not found
 					await prisma.player.create({
-						data: {
-							name: ranking.name,
-							rank: ranking.rank,
-							points: ranking.points,
-						},
+						data: updateData,
 					})
 				}
 			} catch (error) {

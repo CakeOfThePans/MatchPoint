@@ -5,7 +5,7 @@ import { updateRankings } from '../services/playerService.js'
 const prisma = new PrismaClient()
 
 async function main() {
-	await updateRankings()
+	await updateRankings(true)
 }
 
 main()

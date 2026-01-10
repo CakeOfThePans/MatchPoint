@@ -59,20 +59,29 @@ function parseRankingRows(html) {
 
     // Typical layout: [rank, move, player, country, points]
     const rankRaw = $(tds.eq(0)).text().trim();
-    const name =
-      $(tds.eq(2)).find("a").first().text().trim() ||
-      $(tds.eq(2)).text().trim();
+
+    const $playerCell = $(tds.eq(2));
+    const $a = $playerCell.find("a").first();
+
+    const name = $a.text().trim() || $playerCell.text().trim();
+
+    // href is usually relative like "/player/..."
+    const href = ($a.attr("href") || "").trim();
+
+    // Make it absolute if it's relative
+    const playerUrl = href
+      ? new URL(href, BASE).toString()
+      : null;
 
     // Points is usually last column
     const pointsRaw = $(tds.eq(tds.length - 1)).text().trim();
 
-    // basic validation: rank looks like "1." and name exists
     const rank = parseIntSafe(rankRaw);
     const points = parseIntSafe(pointsRaw);
 
     if (!rank || !name || points === null) return;
 
-    out.push({ rank, name, points });
+    out.push({ rank, name, points, playerUrl });
   });
 
   return out

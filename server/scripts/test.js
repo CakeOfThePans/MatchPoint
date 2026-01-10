@@ -1,4 +1,9 @@
-import { updateMatchAndPlayers } from '../services/matchService.js'
+import { scrapeAtpRankings } from '../webscraper/rankingsScraper.js'
+import { scrapePlayer } from '../webscraper/playerScraper.js'
 
-const temp = await updateMatchAndPlayers(3096984, 2)
-console.log(temp)
+async function main() {
+  const playerInfo = await scrapePlayer("https://www.tennisexplorer.com/player/sinner-8b8e8/")
+  console.log(playerInfo)
+}
+
+main()
