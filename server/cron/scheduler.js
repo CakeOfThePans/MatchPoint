@@ -41,22 +41,24 @@ const startCronJobs = () => {
 		}
 	}
 
+	// Rankings jobs run at 0:30 every day in GMT+1
 	cron.schedule(
 		'30 0 * * *',
 		async () => {
-			await runTourJobWithRetry(0)
+			console.log('Running rankings jobs at 0:30 AM GMT+1...')
+			await updateRankingsJob()
 		},
 		{
 			timezone: 'Europe/Paris', // GMT+1 (with DST support)
 		}
 	)
 
-	// Rankings jobs run at 12:30 (12:30 PM) every day in GMT+1
+	// Tour jobs run at 12:30 every day in GMT+1
 	cron.schedule(
 		'30 12 * * *',
 		async () => {
-			console.log('Running rankings jobs at 12:30 PM GMT+1...')
-			await updateRankingsJob()
+			console.log('Running tour jobs at 12:30 PM GMT+1...')
+			await runTourJobWithRetry(0)
 		},
 		{
 			timezone: 'Europe/Paris', // GMT+1 (with DST support)
