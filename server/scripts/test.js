@@ -1,9 +1,18 @@
-import { scrapeAtpRankings } from '../webscraper/rankingsScraper.js'
-import { scrapePlayer } from '../webscraper/playerScraper.js'
+import prisma from '../lib/prisma.js'
 
-async function main() {
-  const playerInfo = await scrapePlayer("https://www.tennisexplorer.com/player/sinner-8b8e8/")
-  console.log(playerInfo)
+async function main(){
+	const matches = await prisma.match.findMany({
+		where: {
+			match_id: 2796459,
+		},
+		include: {
+			home_team: true,
+			away_team: true,
+			winner: true,
+			tournament: true,
+		},
+	})
+	console.log(matches)
 }
 
 main()
