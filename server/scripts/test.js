@@ -1,18 +1,8 @@
-import prisma from '../lib/prisma.js'
+import { updateLiveMatchesJob, updateTourJob } from '../cron/jobFunctions.js'
+import { updateTournaments } from '../services/tournamentService.js'
 
 async function main(){
-	const matches = await prisma.match.findMany({
-		where: {
-			match_id: 2796459,
-		},
-		include: {
-			home_team: true,
-			away_team: true,
-			winner: true,
-			tournament: true,
-		},
-	})
-	console.log(matches)
+	await updateTournaments()
 }
 
 main()

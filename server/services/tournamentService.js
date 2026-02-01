@@ -23,6 +23,10 @@ export const updateTournaments = async () => {
 			// Scrape surface type from the tournament page
 			const tournamentInfo = await scrapeTournamentInfo(tournament.url)
 			const surfaceType = tournamentInfo.surface
+			if(!surfaceType) {
+				console.error(`No surface type found for tournament ${tournamentInfo.name}`)
+				continue
+			}
 
 			// Check if tournament exists
 			const existingTournament = await prisma.tournament.findFirst({
@@ -44,14 +48,19 @@ export const updateTournaments = async () => {
 				})
 			} else {
 				// Create new tournament
-				savedTournament = await prisma.tournament.create({
-					data: {
-						tournament_name: tournamentInfo.name,
-						surface_type: formatCourtType(surfaceType),
-						is_grand_slam: false, // Default to false, manually update later if needed
-						last_updated: new Date(),
-					},
-				})
+				try {
+					savedTournament = await prisma.tournament.create({
+						data: {
+							tournament_name: tournamentInfo.name,
+							surface_type: formatCourtType(surfaceType),
+							is_grand_slam: false, // Default to false, manually update later if needed
+							last_updated: new Date(),
+						},
+					})
+				} catch (error) {
+					console.error(`Error creating tournament ${tournamentInfo.name}:`, error)
+					continue
+				}
 			}
 
 			result.push({
