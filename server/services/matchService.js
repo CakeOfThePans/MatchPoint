@@ -16,7 +16,7 @@ export const updateMatchesFromTournament = async (tournament) => {
     }
   } catch (error) {
     console.error("Error updating matches from tournament:", error);
-    throw error;
+    // throw error; // don't throw error so we can continue updating other tournaments
   }
 };
 
@@ -55,7 +55,7 @@ export const updateLiveMatches = async () => {
     console.log(`Updated ${matches.length} live matches`);
   } catch (error) {
     console.error("Error updating live matches:", error);
-    throw error;
+    // throw error; // don't throw error so we can continue updating other tournaments
   }
 };
 

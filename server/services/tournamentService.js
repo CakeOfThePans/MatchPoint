@@ -19,9 +19,13 @@ export const updateTournaments = async () => {
 		const result = []
 
 		// Update or create each tournament
+		const bannedTournaments = ['Davis Cup', 'Laver Cup'] // remove all cups
 		for (const tournament of scrapedTournaments) {
 			// Scrape surface type from the tournament page
 			const tournamentInfo = await scrapeTournamentInfo(tournament.url)
+			if (bannedTournaments.includes(tournamentInfo.name)) {
+				continue
+			}
 			const surfaceType = tournamentInfo.surface
 			if(!surfaceType) {
 				console.error(`No surface type found for tournament ${tournamentInfo.name}`)
